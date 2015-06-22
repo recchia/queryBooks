@@ -1,0 +1,89 @@
+{% extends "layout.html.twig" %}
+
+{% block content %}
+    <div class="col-md-6">
+        {{ form_start(form, { 'action' : path('find'), 'attr' : { 'class' : 'form-inline', 'id' : 'find_form' } }) }}
+        <fieldset>
+            <legend>Búsqueda Individual</legend>
+            <div class="row row-centered">
+                <div class="form-group">
+                    {{ form_label(form.isbn) }}
+                    <div class="input-group">
+                    <div class="input-group-addon">
+                        <i class="glyphicon glyphicon-search"></i>
+                    </div>
+                        {{ form_widget(form.isbn, { 'attr' : { 'class' : 'form-control' } } ) }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form_label(form.api) }} 
+                    {{ form_widget(form.api, { 'attr' : { 'class' : 'form-control' } } ) }}
+                </div>
+                {{ form_widget(form.search, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
+            </div>
+            {{ form_end(form) }}
+        </fieldset>
+        <div class="jumbotron"></div>
+    </div>
+        
+    <div class="col-md-6">
+        {{ form_start(upload, { 'action' : path('upload'), 'attr' : { 'class' : 'form-inline', 'id' : 'upload_form' } }) }}
+        <fieldset>
+            <legend>Búsqueda Multiple</legend>
+            <div class="row row-centered">
+                <div class="form-group">
+                    {{ form_label(upload.file) }}
+                    {{ form_widget(upload.file) }}
+                    <p class="help-block">Solo se permite archivos Excel de 2 Mb.</p>
+                </div>
+                {{ form_widget(upload.upload, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
+            </div>
+            {{ form_end(upload) }}
+        </fieldset>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+       $(document).ready(function () {
+            $("#find_form").submit(function (event) {
+                var values = {};
+                var form = $("#find_form");
+                $.each( form.serializeArray(), function(i, field) {
+                  values[field.name] = field.value;
+                });
+                $.ajax({
+                    url: "{{ path("find") }}",
+                    method: "POST",
+                    data: values,
+                    dataType: 'json',
+                    encode: true
+                })
+                .done(function (data){
+                    console.log(data);
+                    $(".jumbotron").html(data);
+                });
+                event.preventDefault();
+            });
+            
+            $("#upload_form").on("submit", function(e){
+                e.preventDefault();
+                var f = $(this);
+                var fData = new FormData(document.getElementById('upload_form'));
+                $.ajax({
+                    url: "{{ path("upload") }}",
+                    method: "POST",
+                    data: fData,
+                    dataType: 'json',
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                })
+                .done(function(data) {
+                    console.log(data);
+                });
+            });
+        });
+    </script>
+{% endblock %}
