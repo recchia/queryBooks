@@ -23,7 +23,7 @@
             </div>
             {{ form_end(form) }}
         </fieldset>
-        <div class="jumbotron"></div>
+        <div class="jumbotron hide"></div>
     </div>
         
     <div class="col-md-6">
@@ -63,6 +63,7 @@
                 .done(function (data){
                     console.log(data);
                     $(".jumbotron").html(data);
+                    $(".jumbotron").attr('class', 'jumbotron show');
                 });
                 event.preventDefault();
             });

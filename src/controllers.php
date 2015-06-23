@@ -34,7 +34,7 @@ $app->post('/find', function (Request $request) use ($app) {
 
             return new JsonResponse($json);
         } else {
-            return $app['twig']->render('books/show.html.twig', ['books' => $books]);
+            return $app['twig']->render('books/show.html.twig', ['books' => $book]);
         }
     }
 })->bind('find')
