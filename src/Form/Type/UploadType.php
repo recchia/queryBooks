@@ -7,7 +7,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints;
 
 /**
- * Description of UploadType
+ * Description of UploadType.
  *
  * @author recchia
  */
@@ -21,15 +21,16 @@ class UploadType extends AbstractType
                     'constraints' => new Constraints\File([
                         'maxSize' => '2M',
                         'mimeTypes' => [
-                            'application/vnd.ms-excel', 
-                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                            ]
-                    ])
+                            'application/vnd.ms-excel',
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                            'application/octet-stream',
+                            ],
+                    ]),
                 ])
                 ->add('upload', 'submit', ['label' => 'Subir'])
         ;
     }
-    
+
     public function getName()
     {
         return 'upload_form';

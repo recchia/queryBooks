@@ -1,13 +1,13 @@
 <?php
 
 use Silex\Application;
-use Silex\Provider\TwigServiceProvider;
-use Silex\Provider\RoutingServiceProvider;
-use Silex\Provider\ValidatorServiceProvider;
-use Silex\Provider\ServiceControllerServiceProvider;
-use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\FormServiceProvider;
+use Silex\Provider\HttpFragmentServiceProvider;
+use Silex\Provider\RoutingServiceProvider;
+use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\TranslationServiceProvider;
+use Silex\Provider\TwigServiceProvider;
+use Silex\Provider\ValidatorServiceProvider;
 
 $app = new Application();
 $app->register(new RoutingServiceProvider());
@@ -21,12 +21,12 @@ $app['twig'] = $app->extend('twig', function ($twig, $app) {
     // add custom globals, filters, tags, ...
 
     $twig->addFunction(new \Twig_SimpleFunction('asset', function ($asset) use ($app) {
-        return $app['request_stack']->getMasterRequest()->getBasepath().'/'.ltrim($asset, '/');
+        return $app['request_stack']->getMasterRequest()->getBasepath() . '/' . ltrim($asset, '/');
     }));
 
     return $twig;
 });
 
-define("ROOT", __DIR__ . "/../");
+define('ROOT', __DIR__ . '/../');
 
 return $app;

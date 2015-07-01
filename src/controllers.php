@@ -1,21 +1,21 @@
 <?php
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use \PHPExcel;
+use \PHPExcel_IOFactory;
 use Adapter\GoogleBooksApiAdapter;
 use Form\Type\FindType;
 use Form\Type\UploadType;
-use PHPExcel_IOFactory;
-use PHPExcel;
+use Model\Util;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 //Request::setTrustedProxies(array('127.0.0.1'));
 
 $app->get('/', function () use ($app) {
     $form = $app['form.factory']->createBuilder(new FindType())->getForm()->createView();
     $upload = $app['form.factory']->createBuilder(new UploadType())->getForm()->createView();
+
     return $app['twig']->render('books/index.html.twig', ['form' => $form, 'upload' => $upload]);
 })
 ->bind('homepage')
@@ -59,20 +59,20 @@ $app->post('/uploader', function (Request $request) use ($app) {
         $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
         $books = $api->find($isbns);
         $phpExcel = new PHPExcel();
-        $phpExcel->getProperties()->setCreator("Piero Recchia")
-            ->setLastModifiedBy("Piero Recchia")
-            ->setTitle("Office 2007 XLSX Test Document")
-            ->setSubject("Office 2007 XLSX Test Document")
-            ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
-            ->setKeywords("office 2007 openxml php")
-            ->setCategory("Test result file");
+        $phpExcel->getProperties()->setCreator('Piero Recchia')
+            ->setLastModifiedBy('Piero Recchia')
+            ->setTitle('Office 2007 XLSX Test Document')
+            ->setSubject('Office 2007 XLSX Test Document')
+            ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
+            ->setKeywords('office 2007 openxml php')
+            ->setCategory('Test result file');
         $phpExcel->setActiveSheetIndex(0);
-        $phpExcel->getActiveSheet()->setCellValue('A1', "Titulo");
-        $phpExcel->getActiveSheet()->setCellValue('B1', "Autor");
-        $phpExcel->getActiveSheet()->setCellValue('C1', "Editorial");
-        $phpExcel->getActiveSheet()->setCellValue('D1', "Descripcion");
-        $phpExcel->getActiveSheet()->setCellValue('E1', "Numero de Paginas");
-        $phpExcel->getActiveSheet()->setCellValue('F1', "Imagen");
+        $phpExcel->getActiveSheet()->setCellValue('A1', 'Titulo');
+        $phpExcel->getActiveSheet()->setCellValue('B1', 'Autor');
+        $phpExcel->getActiveSheet()->setCellValue('C1', 'Editorial');
+        $phpExcel->getActiveSheet()->setCellValue('D1', 'Descripcion');
+        $phpExcel->getActiveSheet()->setCellValue('E1', 'Numero de Paginas');
+        $phpExcel->getActiveSheet()->setCellValue('F1', 'Imagen');
 
         $i = 2;
         foreach ($books as $book) {
@@ -90,7 +90,7 @@ $app->post('/uploader', function (Request $request) use ($app) {
         $file = ROOT . 'web/upload/books.xlsx';
         $writer->save($file);
 
-        return $app->sendFile($file, 200, [
+        /**return $app->sendFile($file, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-length' => filesize($file),
             'Cache-Control' => 'max-age=0',
@@ -99,7 +99,7 @@ $app->post('/uploader', function (Request $request) use ($app) {
             'Last-Modified' => gmdate('D, d M Y H:i:s') . ' GMT',
             'Cache-Control' => 'cache, must-revalidate',
             'Pragma' => 'public'
-        ], 'attachment');
+        ], 'attachment');*/
 
         /**$writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
         $writer->save('php://output');
@@ -117,7 +117,9 @@ $app->post('/uploader', function (Request $request) use ($app) {
             'Content-Disposition' => 'attachment;filename=' . $file,
         ]);**/
 
-        //return new JsonResponse(json_encode(['response' => 'File was successfully uploaded!', 'isbns' => $isbns]));
+        return new JsonResponse(json_encode(['response' => 'File was successfully uploaded!', 'isbns' => $isbns]));
+    } else {
+        return new JsonResponse(json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($upload)]));
     }
 })->bind('upload')
 ;
@@ -128,12 +130,12 @@ $app->error(function (\Exception $e, Request $request, $code) use ($app) {
     }
 
     // 404.html, or 40x.html, or 4xx.html, or error.html
-    $templates = array(
-        'errors/'.$code.'.html.twig',
-        'errors/'.substr($code, 0, 2).'x.html.twig',
-        'errors/'.substr($code, 0, 1).'xx.html.twig',
+    $templates = [
+        'errors/' . $code . '.html.twig',
+        'errors/' . substr($code, 0, 2) . 'x.html.twig',
+        'errors/' . substr($code, 0, 1) . 'xx.html.twig',
         'errors/default.html.twig',
-    );
+    ];
 
-    return new Response($app['twig']->resolveTemplate($templates)->render(array('code' => $code)), $code);
+    return new Response($app['twig']->resolveTemplate($templates)->render(['code' => $code]), $code);
 });
