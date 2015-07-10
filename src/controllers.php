@@ -36,7 +36,7 @@ $app->post('/find', function (Request $request) use ($app) {
                     <p>Autor: " .@implode(",", $book['authors']). "</p>
                     <p>Publicado por: " . $book['publisher'] . "</p>
                     <p>Descripcion: " . $book['description'] ."</p>";
-                
+
                 return new JsonResponse($formattedResponse);
             } else {
                 return $app['twig']->render('books/show.html.twig', ['books' => $book]);
@@ -45,7 +45,7 @@ $app->post('/find', function (Request $request) use ($app) {
     }
     catch (BookNotFoundException $e)
     {
-        print_r($e->getMessage());
+       return new JsonResponse("<strong>No se consigui&oacute; el libro buscado</strong>");
     }
 })->bind('find')
 ;
