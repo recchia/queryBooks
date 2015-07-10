@@ -38,7 +38,7 @@ $app->post('/find', function (Request $request) use ($app) {
                 }
 
                 $formattedResponse = "<p>ISBN 10: " .$book['ISBN_10']."<br />
-                ISBN 13:" .$book['ISBN_13']. "</p>
+                ISBN 13: " .$book['ISBN_13']. "</p>
                 <p>Titulo: <strong>" . $book['title']. "</strong></p>
                 <p>Autor: " .$book['authors']. "</p>
                 <p>Publicado por: " . $book['publisher'] . "</p>
@@ -86,21 +86,25 @@ $app->post('/uploader', function (Request $request) use ($app) {
             ->setKeywords('office 2007 openxml php')
             ->setCategory('Test result file');
         $phpExcel->setActiveSheetIndex(0);
-        $phpExcel->getActiveSheet()->setCellValue('A1', 'Titulo');
-        $phpExcel->getActiveSheet()->setCellValue('B1', 'Autor');
-        $phpExcel->getActiveSheet()->setCellValue('C1', 'Editorial');
-        $phpExcel->getActiveSheet()->setCellValue('D1', 'Descripcion');
-        $phpExcel->getActiveSheet()->setCellValue('E1', 'Numero de Paginas');
-        $phpExcel->getActiveSheet()->setCellValue('F1', 'Imagen');
+        $phpExcel->getActiveSheet()->setCellValue('A1', 'ISBN_10');
+        $phpExcel->getActiveSheet()->setCellValue('B1', 'ISBN_13');
+        $phpExcel->getActiveSheet()->setCellValue('C1', 'Titulo');
+        $phpExcel->getActiveSheet()->setCellValue('D1', 'Autor');
+        $phpExcel->getActiveSheet()->setCellValue('E1', 'Editorial');
+        $phpExcel->getActiveSheet()->setCellValue('F1', 'Descripcion');
+        $phpExcel->getActiveSheet()->setCellValue('G1', 'Numero de Paginas');
+        $phpExcel->getActiveSheet()->setCellValue('H1', 'Imagen');
 
         $i = 2;
         foreach ($books as $book) {
-            $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book['title']);
-            $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book['authors']);
-            $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book['publisher']);
-            $phpExcel->getActiveSheet()->setCellValue('D' . $i, $book['description']);
-            $phpExcel->getActiveSheet()->setCellValue('E' . $i, $book['pageCount']);
-            $phpExcel->getActiveSheet()->setCellValue('F' . $i, $book['imageLink']);
+            $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book['ISBN_10']);
+            $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book['ISBN_13']);
+            $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book['title']);
+            $phpExcel->getActiveSheet()->setCellValue('D' . $i, $book['authors']);
+            $phpExcel->getActiveSheet()->setCellValue('E' . $i, $book['publisher']);
+            $phpExcel->getActiveSheet()->setCellValue('F' . $i, $book['description']);
+            $phpExcel->getActiveSheet()->setCellValue('G' . $i, $book['pageCount']);
+            $phpExcel->getActiveSheet()->setCellValue('H' . $i, $book['imageLink']);
             $i++;
         }
         $phpExcel->setActiveSheetIndex(0);
