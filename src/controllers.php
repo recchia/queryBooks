@@ -9,6 +9,7 @@ use Model\Util;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Exception\BookNotFoundException;
 
 //Request::setTrustedProxies(array('127.0.0.1'));
 
@@ -22,20 +23,29 @@ $app->get('/', function () use ($app) {
 ;
 
 $app->post('/find', function (Request $request) use ($app) {
-    $form = $app['form.factory']->createBuilder(new FindType())->getForm();
-    $form->handleRequest($request);
+    try {
+        $form = $app['form.factory']->createBuilder(new FindType())->getForm();
+        $form->handleRequest($request);
+        if ($form->isValid()) {
+            $data = $form->getData();
+            $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
+            $book = $api->findOne($data['isbn']);
+            if ($request->isXmlHttpRequest()) {
 
-    if ($form->isValid()) {
-        $data = $form->getData();
-        $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
-        $book = $api->findOne($data['isbn']);
-        if ($request->isXmlHttpRequest()) {
-            $json = json_encode(['book' => $book]);
-
-            return new JsonResponse($json);
-        } else {
-            return $app['twig']->render('books/show.html.twig', ['books' => $book]);
+                    $formattedResponse = "<p>Titulo: <strong>" . $book['title']. "</strong></p>
+                    <p>Autor: " .@implode(",", $book['authors']). "</p>
+                    <p>Publicado por: " . $book['publisher'] . "</p>
+                    <p>Descripcion: " . $book['description'] ."</p>";
+                
+                return new JsonResponse($formattedResponse);
+            } else {
+                return $app['twig']->render('books/show.html.twig', ['books' => $book]);
+            }
         }
+    }
+    catch (BookNotFoundException $e)
+    {
+        print_r($e->getMessage());
     }
 })->bind('find')
 ;
