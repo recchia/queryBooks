@@ -33,7 +33,7 @@ $app->post('/find', function (Request $request) use ($app) {
             if ($request->isXmlHttpRequest()) {
 
                     $formattedResponse = "<p>Titulo: <strong>" . $book['title']. "</strong></p>
-                    <p>Autor: " .@implode(",", $book['authors']). "</p>
+                    <p>Autor: " .$book['authors']. "</p>
                     <p>Publicado por: " . $book['publisher'] . "</p>
                     <p>Descripcion: " . $book['description'] ."</p>";
 
