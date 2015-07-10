@@ -63,12 +63,15 @@ class GoogleBooksApiAdapter implements AdapterInterface
             $items = $result->getItems();
             if (count($items) > 0) {
                 $volumeInfo = $items[0]->getVolumeInfo();
+                $book['ISBN_13'] = $volumeInfo['industryIdentifiers'][0]['identifier'];
+                $book['ISBN_10'] = $volumeInfo['industryIdentifiers'][1]['identifier'];
                 $book['title'] = $volumeInfo['title'];
                 $book['authors'] = (is_array($volumeInfo['authors'])) ? implode(', ', $volumeInfo['authors']) : $volumeInfo['authors'];
                 $book['publisher'] = $volumeInfo['publisher'];
                 $book['description'] = $volumeInfo['description'];
                 $book['pageCount'] = $volumeInfo['pageCount'];
                 $book['imageLink'] = (!empty($volumeInfo['modelData']['imageLinks']['thumbnail'])) ? $volumeInfo['modelData']['imageLinks']['thumbnail'] : '';
+
 
                 return $book;
             } else {
@@ -97,6 +100,8 @@ class GoogleBooksApiAdapter implements AdapterInterface
                 $items = $result->getItems();
                 if (count($items) > 0) {
                     $volumeInfo = $items[0]->getVolumeInfo();
+                    $book['ISBN_13'] = $volumeInfo['industryIdentifiers'][0]['identifier'];
+                    $book['ISBN_10'] = $volumeInfo['industryIdentifiers'][1]['identifier'];
                     $book['title'] = $volumeInfo['title'];
                     $book['authors'] = (is_array($volumeInfo['authors'])) ? implode(', ', $volumeInfo['authors']) : $volumeInfo['authors'];
                     $book['publisher'] = $volumeInfo['publisher'];
