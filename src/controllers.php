@@ -32,11 +32,19 @@ $app->post('/find', function (Request $request) use ($app) {
             $book = $api->findOne($data['isbn']);
             if ($request->isXmlHttpRequest()) {
 
-                    $formattedResponse = "<p>Titulo: <strong>" . $book['title']. "</strong></p>
-                    <p>Autor: " .$book['authors']. "</p>
-                    <p>Publicado por: " . $book['publisher'] . "</p>
-                    <p>Descripcion: " . $book['description'] ."</p>
-                     <p><a href='" . $book['imageLink'] ."'>Ver Imagen</a></p>";
+                if (is_null($book['pageCount']))
+                {
+                    $book['pageCount'] = "N/A";
+                }
+
+                $formattedResponse = "<p>ISBN 10: " .$book['ISBN_10']."<br />
+                ISBN 13:" .$book['ISBN_13']. "</p>
+                <p>Titulo: <strong>" . $book['title']. "</strong></p>
+                <p>Autor: " .$book['authors']. "</p>
+                <p>Publicado por: " . $book['publisher'] . "</p>
+                <p>Descripcion: " . $book['description'] ."</p>
+                <p>Numero de paginas: " . $book['pageCount']. "</p>
+                <p><a href='" . $book['imageLink'] ."'>Ver Imagen</a></p>";
 
                 return new JsonResponse($formattedResponse);
             } else {
