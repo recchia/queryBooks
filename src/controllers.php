@@ -35,7 +35,8 @@ $app->post('/find', function (Request $request) use ($app) {
                     $formattedResponse = "<p>Titulo: <strong>" . $book['title']. "</strong></p>
                     <p>Autor: " .$book['authors']. "</p>
                     <p>Publicado por: " . $book['publisher'] . "</p>
-                    <p>Descripcion: " . $book['description'] ."</p>";
+                    <p>Descripcion: " . $book['description'] ."</p>
+                     <p><a href='" . $book['imageLink'] ."'>Ver Imagen</a></p>";
 
                 return new JsonResponse($formattedResponse);
             } else {
