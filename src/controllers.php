@@ -39,12 +39,12 @@ $app->post('/find', function (Request $request) use ($app) {
 
                 $formattedResponse = "<p>ISBN 10: " .$book['ISBN_10']."<br />
                 ISBN 13: " .$book['ISBN_13']. "</p>
-                <p>Titulo: <strong>" . $book['title']. "</strong></p>
+                <p>T&iacute;tulo: <strong>" . $book['title']. "</strong></p>
                 <p>Autor: " .$book['authors']. "</p>
                 <p>Publicado por: " . $book['publisher'] . "</p>
-                <p>Descripcion: " . $book['description'] ."</p>
-                <p>Numero de paginas: " . $book['pageCount']. "</p>
-                <p><a href='" . $book['imageLink'] ."'>Ver Imagen</a></p>";
+                <p>Descripci&oacute;n: " . $book['description'] ."</p>
+                <p>N&uacute;mero de p&aacute;ginas: " . $book['pageCount']. "</p>
+                <p><a href='" . $book['imageLink'] ."'>Ver Im&aacute;gen</a></p>";
 
                 return new JsonResponse($formattedResponse);
             } else {
@@ -60,89 +60,101 @@ $app->post('/find', function (Request $request) use ($app) {
 ;
 
 $app->post('/uploader', function (Request $request) use ($app) {
-    $upload = $app['form.factory']->createBuilder(new UploadType())->getForm();
-    $upload->handleRequest($request);
+    try {
+        $upload = $app['form.factory']->createBuilder(new UploadType())->getForm();
+        $upload->handleRequest($request);
 
-    if ($upload->isValid()) {
-        $file = $request->files->get($upload->getName());
-        $path = ROOT . 'web/upload/';
-        $filename = $file['file']->getClientOriginalName();
-        $file['file']->move($path, $filename);
-        $excel = PHPExcel_IOFactory::load($path . $filename);
-        $sheet = $excel->getActiveSheet();
-        $highestRow = $sheet->getHighestRow();
-        $isbns = [];
-        for ($row = 1; $row <= $highestRow; ++$row) {
-            $isbns[] = $sheet->getCellByColumnAndRow(0, $row)->getValue();
+        if ($upload->isValid()) {
+            $file = $request->files->get($upload->getName());
+            $path = ROOT . 'web/upload/';
+            $filename = $file['file']->getClientOriginalName();
+            $file['file']->move($path, $filename);
+            $excel = PHPExcel_IOFactory::load($path . $filename);
+            $sheet = $excel->getActiveSheet();
+            $highestRow = $sheet->getHighestRow();
+            $isbns = [];
+            for ($row = 1; $row <= $highestRow; ++$row) {
+                $isbns[] = $sheet->getCellByColumnAndRow(0, $row)->getValue();
+            }
+            $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
+            $books = $api->find($isbns);
+            $phpExcel = new PHPExcel();
+            $phpExcel->getProperties()->setCreator('Piero Recchia')
+                ->setLastModifiedBy('Piero Recchia')
+                ->setTitle('Office 2007 XLSX Test Document')
+                ->setSubject('Office 2007 XLSX Test Document')
+                ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
+                ->setKeywords('office 2007 openxml php')
+                ->setCategory('Test result file');
+            $phpExcel->setActiveSheetIndex(0);
+            $phpExcel->getActiveSheet()->setCellValue('A1', 'ISBN_10');
+            $phpExcel->getActiveSheet()->setCellValue('B1', 'ISBN_13');
+            $phpExcel->getActiveSheet()->setCellValue('C1', 'Titulo');
+            $phpExcel->getActiveSheet()->setCellValue('D1', 'Autor');
+            $phpExcel->getActiveSheet()->setCellValue('E1', 'Editorial');
+            $phpExcel->getActiveSheet()->setCellValue('F1', 'Descripcion');
+            $phpExcel->getActiveSheet()->setCellValue('G1', 'Numero de Paginas');
+            $phpExcel->getActiveSheet()->setCellValue('H1', 'Imagen');
+
+            $i = 2;
+            foreach ($books as $book) {
+                $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book['ISBN_10']);
+                $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book['ISBN_13']);
+                $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book['title']);
+                $phpExcel->getActiveSheet()->setCellValue('D' . $i, $book['authors']);
+                $phpExcel->getActiveSheet()->setCellValue('E' . $i, $book['publisher']);
+                $phpExcel->getActiveSheet()->setCellValue('F' . $i, $book['description']);
+                $phpExcel->getActiveSheet()->setCellValue('G' . $i, $book['pageCount']);
+                $phpExcel->getActiveSheet()->setCellValue('H' . $i, $book['imageLink']);
+                $i++;
+            }
+            $phpExcel->setActiveSheetIndex(0);
+
+            $writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
+            $file = ROOT . 'web/upload/books.xlsx';
+            $writer->save($file);
+
+            /*return $app->sendFile(
+                $file,
+                200,
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-length' => filesize($file),
+                    'Cache-Control' => 'max-age=0',
+                    'Cache-Control' => 'max-age=1',
+                    'Expires' => 'Mon, 26 Jul 1997 05:00:00 GMT',
+                    'Last-Modified' => gmdate('D, d M Y H:i:s') . ' GMT',
+                    'Cache-Control' => 'cache, must-revalidate',
+                    'Pragma' => 'public'
+                ],
+                'attachment'
+            );*/
+
+            /*$writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
+              $writer->save('php://output');
+              exit;*/
+            $file = ROOT . 'web/upload/books.xlsx';
+             $writer->save($file);
+
+             $stream = function () use ($file) {
+             readfile($file);
+             };
+
+             /*return $app->stream($stream, 200 , [
+             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+             'Content-length' => filesize($file),
+             'Content-Disposition' => 'attachment;filename=' . $file,
+             ]);*/
+            return new JsonResponse('http://books.linio/upload/books.xlsx');
+        } else {
+            return new JsonResponse(
+                json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($upload)])
+            );
         }
-        $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
-        $books = $api->find($isbns);
-        $phpExcel = new PHPExcel();
-        $phpExcel->getProperties()->setCreator('Piero Recchia')
-            ->setLastModifiedBy('Piero Recchia')
-            ->setTitle('Office 2007 XLSX Test Document')
-            ->setSubject('Office 2007 XLSX Test Document')
-            ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
-            ->setKeywords('office 2007 openxml php')
-            ->setCategory('Test result file');
-        $phpExcel->setActiveSheetIndex(0);
-        $phpExcel->getActiveSheet()->setCellValue('A1', 'ISBN_10');
-        $phpExcel->getActiveSheet()->setCellValue('B1', 'ISBN_13');
-        $phpExcel->getActiveSheet()->setCellValue('C1', 'Titulo');
-        $phpExcel->getActiveSheet()->setCellValue('D1', 'Autor');
-        $phpExcel->getActiveSheet()->setCellValue('E1', 'Editorial');
-        $phpExcel->getActiveSheet()->setCellValue('F1', 'Descripcion');
-        $phpExcel->getActiveSheet()->setCellValue('G1', 'Numero de Paginas');
-        $phpExcel->getActiveSheet()->setCellValue('H1', 'Imagen');
-
-        $i = 2;
-        foreach ($books as $book) {
-            $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book['ISBN_10']);
-            $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book['ISBN_13']);
-            $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book['title']);
-            $phpExcel->getActiveSheet()->setCellValue('D' . $i, $book['authors']);
-            $phpExcel->getActiveSheet()->setCellValue('E' . $i, $book['publisher']);
-            $phpExcel->getActiveSheet()->setCellValue('F' . $i, $book['description']);
-            $phpExcel->getActiveSheet()->setCellValue('G' . $i, $book['pageCount']);
-            $phpExcel->getActiveSheet()->setCellValue('H' . $i, $book['imageLink']);
-            $i++;
-        }
-        $phpExcel->setActiveSheetIndex(0);
-
-        $writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
-        $file = ROOT . 'web/upload/books.xlsx';
-        $writer->save($file);
-
-        /**return $app->sendFile($file, 200, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-length' => filesize($file),
-            'Cache-Control' => 'max-age=0',
-            'Cache-Control' => 'max-age=1',
-            'Expires' => 'Mon, 26 Jul 1997 05:00:00 GMT',
-            'Last-Modified' => gmdate('D, d M Y H:i:s') . ' GMT',
-            'Cache-Control' => 'cache, must-revalidate',
-            'Pragma' => 'public'
-        ], 'attachment');*/
-
-        /**$writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
-        $writer->save('php://output');
-        exit;**/
-        /**$file = ROOT . 'web/upload/books.xlsx';
-        $writer->save($file);
-
-        $stream = function () use ($file) {
-            readfile($file);
-        };
-
-        return $app->stream($stream, 200 , [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-length' => filesize($file),
-            'Content-Disposition' => 'attachment;filename=' . $file,
-        ]);**/
-
-        return new JsonResponse(json_encode(['response' => 'File was successfully uploaded!', 'isbns' => $isbns]));
-    } else {
-        return new JsonResponse(json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($upload)]));
+    }
+    catch (Exception $e)
+    {
+        return new JsonResponse($e->getMessage());
     }
 })->bind('upload')
 ;
