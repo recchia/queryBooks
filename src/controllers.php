@@ -10,11 +10,24 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exception\BookNotFoundException;
+use Doctrine\DBAL;
 
 //Request::setTrustedProxies(array('127.0.0.1'));
 
 $app->get('/', function () use ($app) {
-    $form = $app['form.factory']->createBuilder(new FindType())->getForm()->createView();
+
+    $sql = 'SELECT ba_name FROM books_api';
+    $booksApi = $app['dbs']['mysql']->fetchAll($sql);
+
+    $apiArray = [];
+    $count=0;
+    while(count($booksApi) != $count)
+    {
+        $apiArray[$count] = $booksApi[$count]['ba_name'];
+        $count++;
+    }
+
+    $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm()->createView();
     $upload = $app['form.factory']->createBuilder(new UploadType())->getForm()->createView();
 
     return $app['twig']->render('books/index.html.twig', ['form' => $form, 'upload' => $upload]);
@@ -114,38 +127,11 @@ $app->post('/uploader', function (Request $request) use ($app) {
             $file = ROOT . 'web/upload/books.xlsx';
             $writer->save($file);
 
-            /*return $app->sendFile(
-                $file,
-                200,
-                [
-                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'Content-length' => filesize($file),
-                    'Cache-Control' => 'max-age=0',
-                    'Cache-Control' => 'max-age=1',
-                    'Expires' => 'Mon, 26 Jul 1997 05:00:00 GMT',
-                    'Last-Modified' => gmdate('D, d M Y H:i:s') . ' GMT',
-                    'Cache-Control' => 'cache, must-revalidate',
-                    'Pragma' => 'public'
-                ],
-                'attachment'
-            );*/
+            $filename = 'books' . '.xlsx';
+            $file = ROOT . 'web/upload/' . $filename;
+            $writer->save($file);
 
-            /*$writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
-              $writer->save('php://output');
-              exit;*/
-            $file = ROOT . 'web/upload/books.xlsx';
-             $writer->save($file);
-
-             $stream = function () use ($file) {
-             readfile($file);
-             };
-
-             /*return $app->stream($stream, 200 , [
-             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-             'Content-length' => filesize($file),
-             'Content-Disposition' => 'attachment;filename=' . $file,
-             ]);*/
-            return new JsonResponse('http://books.linio/upload/books.xlsx');
+            return new JsonResponse('http://books.linio/upload/' . $filename);
         } else {
             return new JsonResponse(
                 json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($upload)])
