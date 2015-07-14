@@ -37,31 +37,49 @@ $app->get('/', function () use ($app) {
 
 $app->post('/find', function (Request $request) use ($app) {
     try {
-        $form = $app['form.factory']->createBuilder(new FindType())->getForm();
+
+        $sql = 'SELECT ba_name FROM books_api';
+        $booksApi = $app['dbs']['mysql']->fetchAll($sql);
+
+        $apiArray = [];
+        $count=0;
+        while(count($booksApi) != $count)
+        {
+            $apiArray[$count] = $booksApi[$count]['ba_name'];
+            $count++;
+        }
+
+        $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm();
         $form->handleRequest($request);
         if ($form->isValid()) {
             $data = $form->getData();
-            $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
-            $book = $api->findOne($data['isbn']);
-            if ($request->isXmlHttpRequest()) {
 
-                if (is_null($book['pageCount']))
-                {
-                    $book['pageCount'] = "N/A";
-                }
+            if($data['api'] == 0) {
 
-                $formattedResponse = "<p>ISBN 10: " .$book['ISBN_10']."<br />
-                ISBN 13: " .$book['ISBN_13']. "</p>
-                <p>T&iacute;tulo: <strong>" . $book['title']. "</strong></p>
-                <p>Autor: " .$book['authors']. "</p>
+                $sql = "SELECT ba_key FROM books_api WHERE ba_name='Google Books Api'";
+                $key = $app['dbs']['mysql']->fetchColumn($sql);
+
+                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
+                $book = $api->findOne($data['isbn']);
+                if ($request->isXmlHttpRequest()) {
+
+                    if (is_null($book['pageCount'])) {
+                        $book['pageCount'] = "N/A";
+                    }
+
+                    $formattedResponse = "<p>ISBN 10: " . $book['ISBN_10'] . "<br />
+                ISBN 13: " . $book['ISBN_13'] . "</p>
+                <p>T&iacute;tulo: <strong>" . $book['title'] . "</strong></p>
+                <p>Autor: " . $book['authors'] . "</p>
                 <p>Publicado por: " . $book['publisher'] . "</p>
-                <p>Descripci&oacute;n: " . $book['description'] ."</p>
-                <p>N&uacute;mero de p&aacute;ginas: " . $book['pageCount']. "</p>
-                <p><a href='" . $book['imageLink'] ."'>Ver Im&aacute;gen</a></p>";
+                <p>Descripci&oacute;n: " . $book['description'] . "</p>
+                <p>N&uacute;mero de p&aacute;ginas: " . $book['pageCount'] . "</p>
+                <p><a href='" . $book['imageLink'] . "'>Ver Im&aacute;gen</a></p>";
 
-                return new JsonResponse($formattedResponse);
-            } else {
-                return $app['twig']->render('books/show.html.twig', ['books' => $book]);
+                    return new JsonResponse($formattedResponse);
+                } else {
+                    return $app['twig']->render('books/show.html.twig', ['books' => $book]);
+                }
             }
         }
     }
