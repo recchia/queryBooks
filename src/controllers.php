@@ -92,8 +92,16 @@ $app->post('/uploader', function (Request $request) use ($app) {
                 $isbns[] = $sheet->getCellByColumnAndRow(0, $row)->getValue();
             }
 
+            $database = new DBConnection($app);
+
             $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
             $books = $api->find($isbns);
+
+            foreach ($books as $book)
+            {
+                $database->addNewBookInfo($book);
+            }
+
             $phpExcel = new PHPExcel();
             $phpExcel->getProperties()->setCreator('Piero Recchia')
                 ->setLastModifiedBy('Piero Recchia')
