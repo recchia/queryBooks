@@ -11,21 +11,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exception\BookNotFoundException;
 use Doctrine\DBAL;
+use Model\DBConnection;
 
 //Request::setTrustedProxies(array('127.0.0.1'));
 
 $app->get('/', function () use ($app) {
 
-    $sql = 'SELECT ba_name FROM books_api';
-    $booksApi = $app['dbs']['mysql']->fetchAll($sql);
-
-    $apiArray = [];
-    $count=0;
-    while(count($booksApi) != $count)
-    {
-        $apiArray[$count] = $booksApi[$count]['ba_name'];
-        $count++;
-    }
+    $database = new DBConnection($app);
+    $apiArray = $database->findAllApis();
 
     $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm()->createView();
     $upload = $app['form.factory']->createBuilder(new UploadType())->getForm()->createView();
@@ -37,17 +30,8 @@ $app->get('/', function () use ($app) {
 
 $app->post('/find', function (Request $request) use ($app) {
     try {
-
-        $sql = 'SELECT ba_name FROM books_api';
-        $booksApi = $app['dbs']['mysql']->fetchAll($sql);
-
-        $apiArray = [];
-        $count=0;
-        while(count($booksApi) != $count)
-        {
-            $apiArray[$count] = $booksApi[$count]['ba_name'];
-            $count++;
-        }
+        $database = new DBConnection($app);
+        $apiArray = $database->findAllApis();
 
         $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm();
         $form->handleRequest($request);
@@ -56,8 +40,7 @@ $app->post('/find', function (Request $request) use ($app) {
 
             if($data['api'] == 0) {
 
-                $sql = "SELECT ba_key FROM books_api WHERE ba_name='Google Books Api'";
-                $key = $app['dbs']['mysql']->fetchColumn($sql);
+                $key = $database->findApiKey('Google Books Api');
 
                 $api = new GoogleBooksApiAdapter(['api_key' => $key]);
                 $book = $api->findOne($data['isbn']);
@@ -104,9 +87,11 @@ $app->post('/uploader', function (Request $request) use ($app) {
             $sheet = $excel->getActiveSheet();
             $highestRow = $sheet->getHighestRow();
             $isbns = [];
+
             for ($row = 1; $row <= $highestRow; ++$row) {
                 $isbns[] = $sheet->getCellByColumnAndRow(0, $row)->getValue();
             }
+
             $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
             $books = $api->find($isbns);
             $phpExcel = new PHPExcel();
@@ -142,8 +127,6 @@ $app->post('/uploader', function (Request $request) use ($app) {
             $phpExcel->setActiveSheetIndex(0);
 
             $writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
-            $file = ROOT . 'web/upload/books.xlsx';
-            $writer->save($file);
 
             $filename = 'books' . '.xlsx';
             $file = ROOT . 'web/upload/' . $filename;
