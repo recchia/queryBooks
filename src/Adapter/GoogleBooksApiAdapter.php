@@ -58,7 +58,7 @@ class GoogleBooksApiAdapter implements AdapterInterface
     public function findOne($isbn)
     {
         try {
-            $q = 'ISBN=' . $isbn;
+            $q = 'isbn:' . $isbn;
             //$book = [];
             $result = $this->booksApi->volumes->listVolumes($q, $this->params);
             $items = $result->getItems();
@@ -102,7 +102,7 @@ class GoogleBooksApiAdapter implements AdapterInterface
         if (is_array($isbns)) {
             $data = [];
             foreach ($isbns as $isbn) {
-                $q = 'ISBN=' . $isbn;
+                $q = 'isbn:' . $isbn;
                 $result = $this->booksApi->volumes->listVolumes($q, $this->params);
                 $items = $result->getItems();
                 if (count($items) > 0) {
