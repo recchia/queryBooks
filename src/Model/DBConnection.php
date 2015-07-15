@@ -19,10 +19,11 @@ class DBConnection
         $this->app = $app;
     }
 
-    public function bookExistsByISBN13($book)
+    public function bookExistsByISBN13($isbn)
     {
-        $sql = "SELECT COUNT(*) FROM linio_books WHERE LB_isbnThirteen = '" .$book['ISBN_13'] ."'";
+        $sql = "SELECT COUNT(*) FROM linio_books WHERE LB_isbnThirteen = '" .$isbn ."'";
         $count = $this->app['dbs']['mysql']->fetchColumn($sql);
+
         if ($count > 0)
         {
             return true;
@@ -31,9 +32,9 @@ class DBConnection
 
     }
 
-    public function bookExistsByISBN10($book)
+    public function bookExistsByISBN10($isbn)
     {
-        $sql = "SELECT COUNT(*) FROM linio_books WHERE LB_isbnTen = '" .$book['ISBN_10']."'";
+        $sql = "SELECT COUNT(*) FROM linio_books WHERE LB_isbnTen = '" .$isbn."'";
         $count = $this->app['dbs']['mysql']->fetchColumn($sql);
         if ($count > 0)
         {
@@ -79,8 +80,17 @@ class DBConnection
     public function findDataByISBN13($isbn)
     {
         $sql = "SELECT * FROM linio_books, author, lb_author WHERE lb_isbnThirteen = '" . $isbn . "' AND lb_id_fk = lb_id" .
-            "AND auth_id = auth_id_fk";
-        $book = $this->app['dbs']['mysql']->fetchColumn($sql);
+            " AND auth_id = auth_id_fk";
+        $bookDB = $this->app['dbs']['mysql']->fetchAssoc($sql);
+        $book = [];
+        $book['ISBN_10'] = $bookDB['LB_isbnTen'];
+        $book['ISBN_13'] = $bookDB['LB_isbnThirteen'];
+        $book['title'] = $bookDB['LB_title'];
+        $book['authors'] = $bookDB['auth_name'];
+        $book['publisher'] = $bookDB['LB_publisher'];
+        $book['description'] = $bookDB['LB_description'];
+        $book['pageCount'] = $bookDB['LB_pages'];
+        $book['imageLink'] = $bookDB['LB_imageLink'];
         return $book;
     }
 
@@ -88,7 +98,16 @@ class DBConnection
     {
         $sql = "SELECT * FROM linio_books, author, lb_author WHERE lb_isbnTen = '" . $isbn . "' AND lb_id_fk = lb_id" .
             "AND auth_id = auth_id_fk";
-        $book = $this->app['dbs']['mysql']->fetchColumn($sql);
+        $bookDB = $this->app['dbs']['mysql']->fetchAssoc($sql);
+        $book = [];
+        $book['ISBN_10'] = $bookDB['LB_isbnTen'];
+        $book['ISBN_13'] = $bookDB['LB_isbnThirteen'];
+        $book['title'] = $bookDB['LB_title'];
+        $book['authors'] = $bookDB['auth_name'];
+        $book['publisher'] = $bookDB['LB_publisher'];
+        $book['description'] = $bookDB['LB_description'];
+        $book['pageCount'] = $bookDB['LB_pages'];
+        $book['imageLink'] = $bookDB['LB_imageLink'];
         return $book;
     }
 
@@ -116,7 +135,7 @@ class DBConnection
     public function getBookId($book)
     {
         $sql = "SELECT LB_id FROM linio_books WHERE LB_isbnThirteen = '" .$book['ISBN_13'] ."'";
-        $id = $this->app['dbs']['mysql']->fetchColumn($sql, $book['ISBN_13']);
+        $id = $this->app['dbs']['mysql']->fetchColumn($sql);
         return $id;
     }
 
@@ -130,19 +149,21 @@ class DBConnection
                 $sql = "author";
                 $authorData = $this->buildInsertAuthorArray($author);
                 $this->app['dbs']['mysql']->insert($sql, $authorData);
-                $sql = "SELECT auth_id FROM author where auth_name = '" . $author ."'";
-                $id = $this->app['dbs']['mysql']->fetchColumn($sql);
-                $authorsIds[] = $id;
             }
+            $sql = "SELECT auth_id FROM author where auth_name = '" . $author ."'";
+            $id = $this->app['dbs']['mysql']->fetchColumn($sql);
+            $authorsIds[] = $id;
         }
         return $authorsIds;
     }
 
     public function addSingleAuthor($author)
     {
-        $sql = "author";
-        $authorData = $this->buildInsertAuthorArray($author);
-        $this->app['dbs']['mysql']->insert($sql, $authorData);
+        if (!$this->authorExists($author)) {
+            $sql = "author";
+            $authorData = $this->buildInsertAuthorArray($author);
+            $this->app['dbs']['mysql']->insert($sql, $authorData);
+        }
         $sql = "SELECT auth_id FROM author where auth_name = '" . $author ."'";
         $id = $this->app['dbs']['mysql']->fetchColumn($sql);
         return $id;
@@ -170,9 +191,9 @@ class DBConnection
         return $insertData;
     }
 
-    public function addNewBookInfo($book)
+    public function addNewBook($book)
     {
-        if (!$this->bookExistsByISBN13($book)) {
+        if (!$this->bookExistsByISBN13($book['ISBN_13'])) {
             $sql = 'linio_books';
             $bookData = $this->buildInsertBookArray($book);
             $this->app['dbs']['mysql']->insert($sql, $bookData);
