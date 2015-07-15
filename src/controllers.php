@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Exception\BookNotFoundException;
 use Doctrine\DBAL;
 use Model\DBConnection;
+use Model\Book;
 
 //Request::setTrustedProxies(array('127.0.0.1'));
 
@@ -46,18 +47,18 @@ $app->post('/find', function (Request $request) use ($app) {
                 $book = $api->findOne($data['isbn']);
                 if ($request->isXmlHttpRequest()) {
 
-                    if (is_null($book['pageCount'])) {
-                        $book['pageCount'] = "N/A";
+                    if (is_null($book->getPageCount())) {
+                        $book->setPageCount("N/A");
                     }
 
-                    $formattedResponse = "<p>ISBN 10: " . $book['ISBN_10'] . "<br />
-                ISBN 13: " . $book['ISBN_13'] . "</p>
-                <p>T&iacute;tulo: <strong>" . $book['title'] . "</strong></p>
-                <p>Autor: " . $book['authors'] . "</p>
-                <p>Publicado por: " . $book['publisher'] . "</p>
-                <p>Descripci&oacute;n: " . $book['description'] . "</p>
-                <p>N&uacute;mero de p&aacute;ginas: " . $book['pageCount'] . "</p>
-                <p><a href='" . $book['imageLink'] . "'>Ver Im&aacute;gen</a></p>";
+                    $formattedResponse = "<p>ISBN 10: " . $book->getIsbn10() . "<br />
+                ISBN 13: " . $book->getIsbn13() . "</p>
+                <p>T&iacute;tulo: <strong>" . $book->getTitle() . "</strong></p>
+                <p>Autor: " . $book->getAuthors() . "</p>
+                <p>Publicado por: " . $book->getPublisher() . "</p>
+                <p>Descripci&oacute;n: " . $book->getDescription() . "</p>
+                <p>N&uacute;mero de p&aacute;ginas: " . $book->getPageCount() . "</p>
+                <p><a href='" . $book->getImageLink() . "'>Ver Im&aacute;gen</a></p>";
 
                     return new JsonResponse($formattedResponse);
                 } else {
@@ -72,6 +73,7 @@ $app->post('/find', function (Request $request) use ($app) {
     }
 })->bind('find')
 ;
+
 
 $app->post('/uploader', function (Request $request) use ($app) {
     try {
@@ -93,13 +95,23 @@ $app->post('/uploader', function (Request $request) use ($app) {
             }
 
             $database = new DBConnection($app);
+            $isbnsNotFound = [];
+            $booksLinio = $database->findBookArray($isbns,$isbnsNotFound);
 
-            $api = new GoogleBooksApiAdapter(['api_key' => 'AIzaSyDfR5cB9PNeD-fn6FtEs12n5CsbFXQQgDU']);
-            $books = $api->find($isbns);
+            if(!is_null($isbnsNotFound)) {
+                $key = $database->findApiKey('Google Books Api');
+                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
+                $books = $api->find($isbnsNotFound);
 
-            foreach ($books as $book)
+                foreach ($books as $book) {
+                    $database->addNewBook($book);
+                }
+
+                $totalBooks = array_merge($booksLinio, $books);
+            }
+            else
             {
-                $database->addNewBookInfo($book);
+                $totalBooks = $booksLinio;
             }
 
             $phpExcel = new PHPExcel();
@@ -121,7 +133,7 @@ $app->post('/uploader', function (Request $request) use ($app) {
             $phpExcel->getActiveSheet()->setCellValue('H1', 'Imagen');
 
             $i = 2;
-            foreach ($books as $book) {
+            foreach ($totalBooks as $book) {
                 $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book['ISBN_10']);
                 $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book['ISBN_13']);
                 $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book['title']);
@@ -136,7 +148,7 @@ $app->post('/uploader', function (Request $request) use ($app) {
 
             $writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
 
-            $filename = 'books' . '.xlsx';
+            $filename = 'books-'. time() . '.xlsx';
             $file = ROOT . 'web/upload/' . $filename;
             $writer->save($file);
 
