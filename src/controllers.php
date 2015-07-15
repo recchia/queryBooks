@@ -134,14 +134,14 @@ $app->post('/uploader', function (Request $request) use ($app) {
 
             $i = 2;
             foreach ($totalBooks as $book) {
-                $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book['ISBN_10']);
-                $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book['ISBN_13']);
-                $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book['title']);
-                $phpExcel->getActiveSheet()->setCellValue('D' . $i, $book['authors']);
-                $phpExcel->getActiveSheet()->setCellValue('E' . $i, $book['publisher']);
-                $phpExcel->getActiveSheet()->setCellValue('F' . $i, $book['description']);
-                $phpExcel->getActiveSheet()->setCellValue('G' . $i, $book['pageCount']);
-                $phpExcel->getActiveSheet()->setCellValue('H' . $i, $book['imageLink']);
+                $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book->getIsbn10());
+                $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book->getIsbn13());
+                $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book->getTitle());
+                $phpExcel->getActiveSheet()->setCellValue('D' . $i, $book->getAuthors());
+                $phpExcel->getActiveSheet()->setCellValue('E' . $i, $book->getPublisher());
+                $phpExcel->getActiveSheet()->setCellValue('F' . $i, $book->getDescription());
+                $phpExcel->getActiveSheet()->setCellValue('G' . $i, $book->getPageCount());
+                $phpExcel->getActiveSheet()->setCellValue('H' . $i, $book->getImageLink());
                 $i++;
             }
             $phpExcel->setActiveSheetIndex(0);

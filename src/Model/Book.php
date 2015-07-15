@@ -69,6 +69,16 @@ class Book
      */
     public static function buildComplete($isbn10, $isbn13, $title, $authors, $publisher, $description, $pageCount, $imageLink)
     {
+        if (is_null($publisher))
+        {
+            $publisher = "N/A";
+        }
+        if (is_null($pageCount))
+        {
+            $pageCount = "N/A";
+        }
+
+
         $instance = new self();
         $instance->isbn10 = $isbn10;
         $instance->isbn13 = $isbn13;
@@ -181,7 +191,13 @@ class Book
      */
     public function setPublisher($publisher)
     {
-        $this->publisher = $publisher;
+        if (is_null($publisher))
+        {
+            $this->publisher = "N/A";
+        }
+        else {
+            $this->publisher = $publisher;
+        }
     }
 
     /**
@@ -213,7 +229,13 @@ class Book
      */
     public function setPageCount($pageCount)
     {
-        $this->pageCount = $pageCount;
+        if (is_null($pageCount))
+        {
+            $this->pageCount = "N/A";
+        }
+        else {
+            $this->pageCount = $pageCount;
+        }
     }
 
     /**
@@ -233,6 +255,8 @@ class Book
     }
 
     /**
+     * Gets insert array for the Book
+     *
      * @return array
      */
     public function getInsertArray()
