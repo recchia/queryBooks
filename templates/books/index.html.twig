@@ -39,6 +39,9 @@
                 {{ form_widget(upload.upload, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
             </div>
             {{ form_end(upload) }}
+            <div class="row row-centered">
+            <img src=" {{ asset('images/ajax-loader.gif') }}" id="loading" style="display:none;" />
+            </div>
         </fieldset>
         <iframe id="dwnld-iframe" style="display:none;"></iframe>
     </div>
@@ -73,6 +76,7 @@
                 e.preventDefault();
                 var f = $(this);
                 var fData = new FormData(document.getElementById('upload_form'));
+                $("#loading").show();
                 $.ajax({
                     url: "{{ path("upload") }}",
                     method: "POST",
@@ -85,6 +89,7 @@
                 .done(function(data) {
                     console.log(data);
                             $("#dwnld-iframe").attr('src', data);
+                            $("#loading").hide();
                 });
             });
         });

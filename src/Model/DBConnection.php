@@ -10,6 +10,11 @@ namespace Model;
 
 use Silex\Application;
 
+/**
+ * Class DBConnection
+ *
+ * @package Model
+ */
 class DBConnection
 {
     /**
