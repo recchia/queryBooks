@@ -107,6 +107,28 @@ class DBConnection
     }
 
     /**
+     * Finds all documents in the database
+     *
+     * @return array
+     */
+    public function findAllDocuments()
+    {
+        $sql = 'SELECT doc_name FROM documents';
+        $documents = $this->app['dbs']['mysql']->fetchAll($sql);
+
+        $documentsArray = [];
+        $count = 0;
+        while (count($documents) != $count)
+        {
+            $documentsArray[$count] = $documents[$count]['doc_name'];
+            $count++;
+        }
+
+        return $documentsArray;
+
+    }
+
+    /**
      * Finds an api key in the database by using its name
      *
      * @param string $apiName

@@ -77,7 +77,38 @@ class Book
         {
             $pageCount = "N/A";
         }
-
+        if (is_null($isbn10))
+        {
+            $isbn10 = "N/A";
+        }
+        if (is_null($isbn13))
+        {
+            $isbn13 = "N/A";
+        }
+        if (is_null($title))
+        {
+            $title = "N/A";
+        }
+        if (is_null($authors))
+        {
+            $authors = "N/A";
+        }
+        if (is_null($publisher))
+        {
+            $publisher = "N/A";
+        }
+        if (is_null($description))
+        {
+            $description = "N/A";
+        }
+        if (is_null($pageCount))
+        {
+            $pageCount = "N/A";
+        }
+        if (is_null($imageLink))
+        {
+            $imageLink = "N/A";
+        }
 
         $instance = new self();
         $instance->isbn10 = $isbn10;
@@ -127,7 +158,13 @@ class Book
      */
     public function setIsbn10($isbn10)
     {
-        $this->isbn10 = $isbn10;
+        if (is_null($isbn10))
+        {
+            $this->isbn10 = "N/A";
+        }
+        else {
+            $this->isbn10 = $isbn10;
+        }
     }
 
     /**
@@ -143,7 +180,13 @@ class Book
      */
     public function setIsbn13($isbn13)
     {
-        $this->isbn13 = $isbn13;
+        if (is_null($isbn13))
+        {
+            $this->isbn13 = "N/A";
+        }
+        else {
+            $this->isbn13 = $isbn13;
+        }
     }
 
     /**
@@ -159,7 +202,13 @@ class Book
      */
     public function setTitle($title)
     {
-        $this->title = $title;
+        if (is_null($title))
+        {
+            $this->title = "N/A";
+        }
+        else {
+            $this->title = $title;
+        }
     }
 
     /**
@@ -175,7 +224,13 @@ class Book
      */
     public function setAuthors($authors)
     {
-        $this->authors = $authors;
+        if (is_null($authors))
+        {
+            $this->authors = "N/A";
+        }
+        else {
+            $this->authors = $authors;
+        }
     }
 
     /**
@@ -213,7 +268,13 @@ class Book
      */
     public function setDescription($description)
     {
-        $this->description = $description;
+        if (is_null($description))
+        {
+            $this->description = "N/A";
+        }
+        else {
+            $this->description = $description;
+        }
     }
 
     /**
@@ -251,7 +312,13 @@ class Book
      */
     public function setImageLink($imageLink)
     {
-        $this->imageLink = $imageLink;
+        if (is_null($imageLink))
+        {
+            $this->imageLink = "N/A";
+        }
+        else {
+            $this->imageLink = $imageLink;
+        }
     }
 
     /**

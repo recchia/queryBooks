@@ -5,6 +5,7 @@ use \PHPExcel_IOFactory;
 use Adapter\GoogleBooksApiAdapter;
 use Form\Type\FindType;
 use Form\Type\UploadType;
+use Form\Type\DownloadType;
 use Model\Util;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,13 +21,22 @@ $app->get('/', function () use ($app) {
 
     $database = new DBConnection($app);
     $apiArray = $database->findAllApis();
+    $docArray = $database->findAllDocuments();
 
     $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm()->createView();
     $upload = $app['form.factory']->createBuilder(new UploadType())->getForm()->createView();
+    $download = $app['form.factory']->createBuilder(new DownloadType($docArray))->getForm()->createView();
 
-    return $app['twig']->render('books/index.html.twig', ['form' => $form, 'upload' => $upload]);
+    return $app['twig']->render('books/index.html.twig', ['form' => $form, 'upload' => $upload, 'download' => $download]);
 })
 ->bind('homepage')
+;
+
+$app->post('/download', function () use ($app) {
+
+    //TODO: download method
+})
+    ->bind('download')
 ;
 
 $app->post('/find', function (Request $request) use ($app) {
@@ -77,6 +87,7 @@ $app->post('/find', function (Request $request) use ($app) {
 
 $app->post('/uploader', function (Request $request) use ($app) {
     try {
+        ini_set('max_execution_time', 100000);
         $upload = $app['form.factory']->createBuilder(new UploadType())->getForm();
         $upload->handleRequest($request);
 
@@ -101,11 +112,11 @@ $app->post('/uploader', function (Request $request) use ($app) {
             if(!is_null($isbnsNotFound)) {
                 $key = $database->findApiKey('Google Books Api');
                 $api = new GoogleBooksApiAdapter(['api_key' => $key]);
-                $books = $api->find($isbnsNotFound);
+                $books = $api->find($isbnsNotFound, $app);
 
-                foreach ($books as $book) {
+                /*foreach ($books as $book) {
                     $database->addNewBook($book);
-                }
+                }*/
 
                 $totalBooks = array_merge($booksLinio, $books);
             }
@@ -114,7 +125,7 @@ $app->post('/uploader', function (Request $request) use ($app) {
                 $totalBooks = $booksLinio;
             }
 
-            $phpExcel = new PHPExcel();
+            /*$phpExcel = new PHPExcel();
             $phpExcel->getProperties()->setCreator('Piero Recchia')
                 ->setLastModifiedBy('Piero Recchia')
                 ->setTitle('Office 2007 XLSX Test Document')
@@ -152,7 +163,11 @@ $app->post('/uploader', function (Request $request) use ($app) {
             $file = ROOT . 'web/upload/' . $filename;
             $writer->save($file);
 
-            return new JsonResponse('http://books.linio/upload/' . $filename);
+            return new JsonResponse('http://books.linio/upload/' . $filename);*/
+
+            $filename= $filename . " (Cargado)";
+
+            return new JsonResponse('Documento guardado como: '. $filename);
         } else {
             return new JsonResponse(
                 json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($upload)])

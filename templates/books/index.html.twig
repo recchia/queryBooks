@@ -30,20 +30,43 @@
         {{ form_start(upload, { 'action' : path('upload'), 'attr' : { 'class' : 'form-inline', 'id' : 'upload_form' } }) }}
         <fieldset>
             <legend>Búsqueda Multiple</legend>
-            <div class="row row-centered">
+            <div class="">
                 <div class="form-group">
                     {{ form_label(upload.file) }}
                     {{ form_widget(upload.file) }}
                     <p class="help-block">Solo se permite archivos Excel de 2 Mb.</p>
+                    <img src='{{ asset('images/poweredby.png') }}' />
                 </div>
                 {{ form_widget(upload.upload, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
+
             </div>
             {{ form_end(upload) }}
-            <div class="row row-centered">
+            <div class="">
             <img src=" {{ asset('images/ajax-loader.gif') }}" id="loading" style="display:none;" />
+                <br />
+                <br />
             </div>
         </fieldset>
         <iframe id="dwnld-iframe" style="display:none;"></iframe>
+    </div>
+
+    <div class="col-md-6 col-lg-offset-6">
+        <br />
+        {{ form_start(download, {'action' : path('download'), 'attr' : {'class' : 'form-inline', 'id' : 'download_form'} }) }}
+        <fieldset>
+            <h3>Descarga de Archivos</h3>
+            <div class="">
+                <div class="form-group">
+                    {{ form_label(download.files) }}
+                    {{ form_widget (download.files, { 'attr' : { 'class' : 'form-control' } }) }}
+                </div>
+            </div>
+            <br />
+            <div class="btn-group">
+                {{ form_widget(download.download, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
+            </div>
+            {{ form_end(download) }}
+        </fieldset>
     </div>
 {% endblock %}
 
@@ -92,6 +115,21 @@
                             $("#loading").hide();
                 });
             });
+           $("#donwload_form").on("submit", function(e){
+               e.preventDefault();
+               var fData = new FormData(document.getElementById('download_form'));
+               $.ajax({
+                   url: "{{ path('download') }}",
+                   method: "POST",
+                   data: fData,
+                   dataType: 'json',
+                   cache: false,
+                   contentType: false,
+                   processData: false
+               }).done(function(data){
+                   console.log(data);
+               });
+           });
         });
     </script>
 {% endblock %}
