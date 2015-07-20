@@ -9,6 +9,7 @@
 namespace Model;
 
 use Silex\Application;
+use Symfony\Component\Intl\Exception\NotImplementedException;
 
 /**
  * Class DBConnection
@@ -304,5 +305,139 @@ class DBConnection
             $this->app['dbs']['mysql']->insert($sql, $insertData);
         }
 
+    }
+
+    /**
+     * Gets a book info by its id
+     *
+     * @param $bookId
+     *
+     * @return Book
+     */
+    public function getBookInfoById($bookId)
+    {
+        $sql = "select * from linio_books, author, lb_author where lb_id ='".$bookId."' AND lb_id_fk = lb_id" .
+            "AND auth_id = auth_id_fk";
+        $bookDB = $this->app['dbs']['mysql']->fetchAssoc($sql);
+        $book = Book::buildComplete($bookDB['LB_isbnTen'], $bookDB['LB_isbnThirteen'], $bookDB['LB_title'],
+            $bookDB['auth_name'], $bookDB['LB_publisher'], $bookDB['LB_description'], $bookDB['LB_pages'],
+            $bookDB['LB_imageLink']);
+        return $book;
+
+    }
+
+    /**
+     * Gets books array associated with a file
+     *
+     * @param $filename
+     *
+     * @return array
+     */
+    public function getBooksFromFilename($filename)
+    {
+        if(!is_null($filename))
+        {
+            $sql = "select lb_isbnTen, lb_isbnThirteen, lb_title, auth_name, lb_publisher, lb_description, lb_pages,
+            lb_imageLink from linio_books as lb, author as auth, lb_author as lba, documents as doc, lb_doc as lbd
+            where doc.doc_name='".$filename."' and doc.doc_id = lbd.doc_id_fk and lb.LB_id = lbd.lb_id_fk
+            and lba.lb_id_fk = lb.LB_id and lba.auth_id_fk = auth.auth_id";
+            $booksDBArray = $this->app['dbs']['mysql']->fetchAll($sql);
+            $booksArray = [];
+            foreach ($booksDBArray as $bookDB)
+            {
+                $book = Book::buildComplete($bookDB['LB_isbnTen'], $bookDB['LB_isbnThirteen'], $bookDB['LB_title'],
+                    $bookDB['auth_name'], $bookDB['LB_publisher'], $bookDB['LB_description'], $bookDB['LB_pages'],
+                    $bookDB['LB_imageLink']);
+                $booksArray[] = $book;
+            }
+            return $booksArray;
+        }
+        return null;
+    }
+
+    /**
+     * Inserts a document into the database
+     *
+     * @param $filename
+     *
+     * @return bool
+     */
+    public function insertDocument($filename)
+    {
+        if (!is_null($filename))
+        {
+            $insertData = [];
+            $sql = "documents";
+            $insertData['doc_id'] = null;
+            $insertData['doc_name'] = $filename;
+            $this->app['dbs']['mysql']->insert($sql,$insertData);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Inserts into book document relation table
+     *
+     * @param $bookId
+     * @param $docId
+     *
+     * @return bool
+     */
+    public function insertBookDoc($bookId, $docId)
+    {
+        if (!is_null($bookId) &&  !is_null($docId))
+        {
+            $insertData = [];
+            $sql = "lb_doc";
+            $insertData['lb_id_fk'] = $bookId;
+            $insertData['doc_id_fk'] = $docId;
+            $this->app['dbs']['mysql']->insert($sql,$insertData);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Gets a documents id by its filename
+     *
+     * @param $filename
+     *
+     * @return string
+     */
+    public function getDocumentID($filename)
+    {
+        $sql = "Select doc_id from documents where doc_name ='".$filename."'";
+        $id = $this->app['dbs']['mysql']->fetchColumn($sql);
+        return $id;
+    }
+
+    /**
+     * Saves file and its books in database
+     *
+     * @param $filename
+     * @param $isbns
+     *
+     * @return bool
+     */
+    public function saveFile($filename, $isbns)
+    {
+        if(!is_null($filename && !is_null($isbns)))
+        {
+            if($this->insertDocument($filename))
+            {
+                $docId = $this->getDocumentID($filename);
+                $book = new Book();
+                foreach ($isbns as $isbn)
+                {
+                    $book->setIsbn13($isbn);
+                    $bookId = $this->getBookId($book);
+                    $this->insertBookDoc($bookId,$docId);
+                }
+                return true;
+
+            }
+        }
+        return false;
     }
 }
