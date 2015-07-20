@@ -345,9 +345,9 @@ class DBConnection
             $booksArray = [];
             foreach ($booksDBArray as $bookDB)
             {
-                $book = Book::buildComplete($bookDB['LB_isbnTen'], $bookDB['LB_isbnThirteen'], $bookDB['LB_title'],
-                    $bookDB['auth_name'], $bookDB['LB_publisher'], $bookDB['LB_description'], $bookDB['LB_pages'],
-                    $bookDB['LB_imageLink']);
+                $book = Book::buildComplete($bookDB['lb_isbnTen'], $bookDB['lb_isbnThirteen'], $bookDB['lb_title'],
+                    $bookDB['auth_name'], $bookDB['lb_publisher'], $bookDB['lb_description'], $bookDB['lb_pages'],
+                    $bookDB['lb_imageLink']);
                 $booksArray[] = $book;
             }
             return $booksArray;
@@ -413,6 +413,25 @@ class DBConnection
     }
 
     /**
+     * Checks if relationship exists
+     *
+     * @param $bookId
+     * @param $docId
+     *
+     * @return bool
+     */
+    public function relationshipBookDocExists($bookId, $docId)
+    {
+        $sql = "select count(*) from lb_doc where lb_id_fk='" .$bookId ."' and doc_id_fk='" .$docId."'";
+        $count = $this->app['dbs']['mysql']->fetchColumn($sql);
+        if ($count > 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Saves file and its books in database
      *
      * @param $filename
@@ -430,12 +449,15 @@ class DBConnection
                 $book = new Book();
                 foreach ($isbns as $isbn)
                 {
-                    $book->setIsbn13($isbn);
-                    $bookId = $this->getBookId($book);
-                    $this->insertBookDoc($bookId,$docId);
+                    if($this->bookExistsByISBN13($isbn)) {
+                        $book->setIsbn13($isbn);
+                        $bookId = $this->getBookId($book);
+                        if (!$this->relationshipBookDocExists($bookId,$docId)) {
+                            $this->insertBookDoc($bookId, $docId);
+                        }
+                    }
                 }
                 return true;
-
             }
         }
         return false;
