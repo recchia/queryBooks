@@ -111,13 +111,17 @@
                 })
                 .done(function(data) {
                     console.log(data);
-                            $("#dwnld-iframe").attr('src', data);
+                            $(".jumbotron").html(data);
+                            $(".jumbotron").attr('class', 'jumbotron show');
+                            //$("#dwnld-iframe").attr('src', data);
                             $("#loading").hide();
                 });
             });
-           $("#donwload_form").on("submit", function(e){
-               e.preventDefault();
+           $("#donwload_form").on("submit", function(event){
+               var f = $(this);
+               event.preventDefault();
                var fData = new FormData(document.getElementById('download_form'));
+               $("#loading").show();
                $.ajax({
                    url: "{{ path('download') }}",
                    method: "POST",
@@ -128,6 +132,8 @@
                    processData: false
                }).done(function(data){
                    console.log(data);
+                   $("#dwnld-iframe").attr('src', data);
+                   $("#loading").hide();
                });
            });
         });

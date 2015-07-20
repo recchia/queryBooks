@@ -32,11 +32,69 @@ $app->get('/', function () use ($app) {
 ->bind('homepage')
 ;
 
-$app->post('/download', function () use ($app) {
+$app->post('/download', function (Request $request) use ($app) {
 
-    //TODO: download method
-})
-    ->bind('download')
+    try
+    {
+        $database = new DBConnection($app);
+        $documentsArray = $database->findAllDocuments();
+
+        $download = $app['form.factory']->createBuilder(new DownloadType($documentsArray))->getForm();
+        $download ->handleRequest($request);
+        if ($download->isValid()){
+            $data = $download->getData();
+
+            $filename = $documentsArray[$data['files']];
+
+            $books = $database->getBooksFromFilename($filename);
+
+            $phpExcel = new PHPExcel();
+            $phpExcel->getProperties()->setCreator('Linio Books')
+                ->setLastModifiedBy('Linio')
+                ->setTitle('Office 2007 XLSX Test Document')
+                ->setSubject('Office 2007 XLSX Test Document')
+                ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
+                ->setKeywords('office 2007 openxml php')
+                ->setCategory('Test result file');
+            $phpExcel->setActiveSheetIndex(0);
+            $phpExcel->getActiveSheet()->setCellValue('A1', 'ISBN_10');
+            $phpExcel->getActiveSheet()->setCellValue('B1', 'ISBN_13');
+            $phpExcel->getActiveSheet()->setCellValue('C1', 'Titulo');
+            $phpExcel->getActiveSheet()->setCellValue('D1', 'Autor');
+            $phpExcel->getActiveSheet()->setCellValue('E1', 'Editorial');
+            $phpExcel->getActiveSheet()->setCellValue('F1', 'Descripcion');
+            $phpExcel->getActiveSheet()->setCellValue('G1', 'Numero de Paginas');
+            $phpExcel->getActiveSheet()->setCellValue('H1', 'Imagen');
+
+            $i = 2;
+            foreach ($books as $book) {
+                $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book->getIsbn10());
+                $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book->getIsbn13());
+                $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book->getTitle());
+                $phpExcel->getActiveSheet()->setCellValue('D' . $i, $book->getAuthors());
+                $phpExcel->getActiveSheet()->setCellValue('E' . $i, $book->getPublisher());
+                $phpExcel->getActiveSheet()->setCellValue('F' . $i, $book->getDescription());
+                $phpExcel->getActiveSheet()->setCellValue('G' . $i, $book->getPageCount());
+                $phpExcel->getActiveSheet()->setCellValue('H' . $i, $book->getImageLink());
+                $i++;
+            }
+            $phpExcel->setActiveSheetIndex(0);
+
+            $writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
+            $file = ROOT . 'web/upload/' . $filename;
+            $writer->save($file);
+            return new JsonResponse('http://books.linio/upload/' . $filename);
+        } else {
+            return new JsonResponse(
+                json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($download)])
+            );
+        }
+    }
+    catch (Exception $e)
+    {
+        return new JsonResponse($e->getMessage());
+    }
+})->bind('download')
 ;
 
 $app->post('/find', function (Request $request) use ($app) {
@@ -165,7 +223,8 @@ $app->post('/uploader', function (Request $request) use ($app) {
 
             return new JsonResponse('http://books.linio/upload/' . $filename);*/
 
-            $filename= $filename . " (Cargado)";
+            $filename= trim($filename,".xlsx") . time() . ".xlsx";
+            $database->saveFile($filename,$isbns);
 
             return new JsonResponse('Documento guardado como: '. $filename);
         } else {
