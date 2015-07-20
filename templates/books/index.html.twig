@@ -1,72 +1,116 @@
 {% extends "layout.html.twig" %}
 
 {% block content %}
-    <div class="col-md-6">
-        {{ form_start(form, { 'action' : path('find'), 'attr' : { 'class' : 'form-inline', 'id' : 'find_form' } }) }}
-        <fieldset>
-            <legend>Búsqueda Individual</legend>
-            <div class="row row-centered">
-                <div class="form-group">
-                    {{ form_label(form.isbn) }}
-                    <div class="input-group">
-                    <div class="input-group-addon">
-                        <i class="glyphicon glyphicon-search"></i>
+    <div class="col-md-12">
+    <br />
+        <div class="panel-group col-sm-12 col-md-12 col-lg-12" id="accordionIndividual" role="tablist">
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="individual">
+                    <h3 class="panel-title">
+                        <a class="link" href="#collapseIndividual" data-toggle="collapse" data-parent="#accordionIndividual">
+                            B&uacute;squeda Individual
+                        </a>
+                    </h3>
+                </div>
+                <div id="collapseIndividual" class="panel-collpase collapse">
+                    <div class="panel-body">
+                    {{ form_start(form, { 'action' : path('find'), 'attr' : { 'class' : 'form-inline', 'id' : 'find_form' } }) }}
+                    <fieldset>
+                        <div class="row row-centered">
+                            <div class="form-group">
+                                {{ form_label(form.isbn) }}
+                                <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="glyphicon glyphicon-search"></i>
+                                </div>
+                                    {{ form_widget(form.isbn, { 'attr' : { 'class' : 'form-control' } } ) }}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {{ form_label(form.api) }}
+                                {{ form_widget(form.api, { 'attr' : { 'class' : 'form-control' } } ) }}
+                            </div>
+                            {{ form_widget(form.search, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
+                        </div>
+                        {{ form_end(form) }}
+                    </fieldset>
+                        <div class="jumbotron hide" id="jumbotronFind"></div>
                     </div>
-                        {{ form_widget(form.isbn, { 'attr' : { 'class' : 'form-control' } } ) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="col-md-12">
+     <div class="panel-group col-sm-12 col-md-12 col-lg-12" id="accordionMultiple" role="tablist">
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="multiple">
+                    <h3 class="panel-title">
+                        <a class="link" href="#collapseMultiple" data-toggle="collapse" data-parent="#accordionMultiple">
+                            B&uacute;squeda M&uacute;ltiple
+                        </a>
+                    </h3>
+                </div>
+                <div id="collapseMultiple" class="panel-collpase collapse">
+                    <div class="panel-body">
+                        {{ form_start(upload, { 'action' : path('upload'), 'attr' : { 'class' : 'form-inline', 'id' : 'upload_form' } }) }}
+                        <fieldset>
+                            <div class="row row-centered">
+                                <div class="form-group">
+                                    {{ form_label(upload.file) }}
+                                    {{ form_widget(upload.file) }}
+                                    <p class="help-block">Solo se permite archivos Excel de 2 Mb.</p>
+                                    <img src='{{ asset('images/poweredby.png') }}' />
+                                </div>
+                                {{ form_widget(upload.upload, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
+
+                            </div>
+                            {{ form_end(upload) }}
+                            <div class="row row-centered">
+                            <img src=" {{ asset('images/ajax-loader.gif') }}" id="loading" style="display:none;" />
+                                <br />
+                                <br />
+                            </div>
+                        </fieldset>
+                        <div class="jumbotron hide" id="jumbotronUpload"></div>
                     </div>
                 </div>
-                <div class="form-group">
-                    {{ form_label(form.api) }}
-                    {{ form_widget(form.api, { 'attr' : { 'class' : 'form-control' } } ) }}
-                </div>
-                {{ form_widget(form.search, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
             </div>
-            {{ form_end(form) }}
-        </fieldset>
-        <div class="jumbotron hide"></div>
+     </div>
     </div>
-
-    <div class="col-md-6">
-        {{ form_start(upload, { 'action' : path('upload'), 'attr' : { 'class' : 'form-inline', 'id' : 'upload_form' } }) }}
-        <fieldset>
-            <legend>Búsqueda Multiple</legend>
-            <div class="">
-                <div class="form-group">
-                    {{ form_label(upload.file) }}
-                    {{ form_widget(upload.file) }}
-                    <p class="help-block">Solo se permite archivos Excel de 2 Mb.</p>
-                    <img src='{{ asset('images/poweredby.png') }}' />
+    <div class="col-md-12">
+        <div class="panel-group col-sm-12 col-md-12 col-lg-12" id="accordionDescarga" role="tablist">
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="descarga">
+                    <h3 class="panel-title">
+                        <a class="link" href="#collapseDescarga" data-toggle="collapse" data-parent="#accordionDescarga">
+                            Descarga de Archivos
+                        </a>
+                    </h3>
                 </div>
-                {{ form_widget(upload.upload, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
-
-            </div>
-            {{ form_end(upload) }}
-            <div class="">
-            <img src=" {{ asset('images/ajax-loader.gif') }}" id="loading" style="display:none;" />
-                <br />
-                <br />
-            </div>
-        </fieldset>
-        <iframe id="dwnld-iframe" style="display:none;"></iframe>
-    </div>
-
-    <div class="col-md-6 col-lg-offset-6">
-        <br />
-        {{ form_start(download, {'action' : path('download'), 'attr' : {'class' : 'form-inline', 'id' : 'download_form'} }) }}
-        <fieldset>
-            <h3>Descarga de Archivos</h3>
-            <div class="">
-                <div class="form-group">
-                    {{ form_label(download.files) }}
-                    {{ form_widget (download.files, { 'attr' : { 'class' : 'form-control' } }) }}
+                <div id="collapseDescarga" class="panel-collpase collapse">
+                    <div class="panel-body">
+                        {{ form_start(download, {'action' : path('download'), 'attr' : {'class' : 'form-inline', 'id' : 'download_form'} }) }}
+                        <fieldset>
+                            <div class="row row-centered">
+                                <div class="form-group">
+                                    {{ form_label(download.files) }}
+                                    {{ form_widget (download.files, { 'attr' : { 'class' : 'form-control' } }) }}
+                                </div>
+                            <br />
+                            <div class="btn-group">
+                                <br/>
+                                {{ form_widget(download.download, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
+                            </div>
+                            </div>
+                            {{ form_end(download) }}
+                        </fieldset>
+                        <iframe id="dwnld-iframe" style="display:none;"></iframe>
+                        <img src=" {{ asset('images/ajax-loader.gif') }}" id="loadingDownload" style="display:none;" />
+                    </div>
                 </div>
             </div>
-            <br />
-            <div class="btn-group">
-                {{ form_widget(download.download, { 'attr' : { 'class' : 'btn btn-primary' } }) }}
-            </div>
-            {{ form_end(download) }}
-        </fieldset>
+        </div>
     </div>
 {% endblock %}
 
@@ -89,8 +133,8 @@
                 })
                 .done(function (data){
                     console.log(data);
-                    $(".jumbotron").html(data);
-                    $(".jumbotron").attr('class', 'jumbotron show');
+                    $("#jumbotronFind").html(data);
+                    $("#jumbotronFind").attr('class', 'jumbotron show');
                 });
                 event.preventDefault();
             });
@@ -111,19 +155,19 @@
                 })
                 .done(function(data) {
                     console.log(data);
-                            $(".jumbotron").html(data);
-                            $(".jumbotron").attr('class', 'jumbotron show');
+                            $("#jumbotronUpload").html(data);
+                            $("#jumbotronUpload").attr('class', 'jumbotron show');
                             //$("#dwnld-iframe").attr('src', data);
                             $("#loading").hide();
                 });
             });
-           $("#donwload_form").on("submit", function(event){
-               var f = $(this);
+           $("#download_form").on("submit", function(event){
                event.preventDefault();
+               var f = $(this);
                var fData = new FormData(document.getElementById('download_form'));
-               $("#loading").show();
+               $("#loadingDownload").show();
                $.ajax({
-                   url: "{{ path('download') }}",
+                   url: "{{ path("download") }}",
                    method: "POST",
                    data: fData,
                    dataType: 'json',
@@ -133,7 +177,7 @@
                }).done(function(data){
                    console.log(data);
                    $("#dwnld-iframe").attr('src', data);
-                   $("#loading").hide();
+                   $("#loadingDownload").hide();
                });
            });
         });
