@@ -67,7 +67,7 @@
                             </div>
                             {{ form_end(upload) }}
                             <div class="row row-centered">
-                            <img src=" {{ asset('images/ajax-loader.gif') }}" id="loading" style="display:none;" />
+                                <img src=" {{ asset('images/ajax-loader.gif') }}" id="loading" style="display:none;" />
                                 <br />
                                 <br />
                             </div>
@@ -105,8 +105,10 @@
                             </div>
                             {{ form_end(download) }}
                         </fieldset>
-                        <iframe id="dwnld-iframe" style="display:none;"></iframe>
-                        <img src=" {{ asset('images/ajax-loader.gif') }}" id="loadingDownload" style="display:none;" />
+                        <div class="row row-centered">
+                            <iframe id="dwnld-iframe" style="display:none;"></iframe>
+                            <img src=" {{ asset('images/ajax-loader.gif') }}" id="loadingDownload" style="display:none;" />
+                        </div>
                     </div>
                 </div>
             </div>
