@@ -207,7 +207,7 @@ class Book
             $this->title = "N/A";
         }
         else {
-            $this->title = $title;
+            $this->title = trim($title,"'");
         }
     }
 
@@ -229,7 +229,7 @@ class Book
             $this->authors = "N/A";
         }
         else {
-            $this->authors = $authors;
+            $this->authors = trim($authors,"'");
         }
     }
 
@@ -329,14 +329,14 @@ class Book
     public function getInsertArray()
     {
         $insertData = [];
-        $insertData['LB_id'] = null;
-        $insertData['LB_isbnTen'] = $this->getIsbn10();
-        $insertData['LB_isbnThirteen'] = $this->getIsbn13();
-        $insertData['LB_title'] = $this->getTitle();
-        $insertData['LB_publisher'] = $this->getPublisher();
-        $insertData['LB_description'] = $this->getDescription();
-        $insertData['LB_pages'] = $this->getPageCount();
-        $insertData['LB_imageLink'] = $this->getImageLink();
+        $insertData[Constants::BOOK_ID] = null;
+        $insertData[Constants::BOOK_ISBN10] = $this->getIsbn10();
+        $insertData[Constants::BOOK_ISBN13] = $this->getIsbn13();
+        $insertData[Constants::BOOK_TITLE] = $this->getTitle();
+        $insertData[Constants::BOOK_PUBLISHER] = $this->getPublisher();
+        $insertData[Constants::BOOK_DESCRIPTION] = $this->getDescription();
+        $insertData[Constants::BOOK_NUMPAGES] = $this->getPageCount();
+        $insertData[Constants::BOOK_IMAGELINK] = $this->getImageLink();
         return $insertData;
     }
 }

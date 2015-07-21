@@ -38,8 +38,8 @@ class DBConnection
      */
     public function bookExistsByISBN13($isbn)
     {
-        $sql = "SELECT COUNT(*) FROM linio_books WHERE LB_isbnThirteen = ?";
-        $count = $this->app['dbs']['mysql']->fetchColumn($sql, array($isbn), 0);
+        $count = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchColumn(Constants::QUERY_COUNTBOOKSBYISBN13, array($isbn), 0);
 
         if ($count > 0)
         {
@@ -59,8 +59,8 @@ class DBConnection
      */
     public function bookExistsByISBN10($isbn)
     {
-        $sql = "SELECT COUNT(*) FROM linio_books WHERE LB_isbnTen = ?";
-        $count = $this->app['dbs']['mysql']->fetchColumn($sql, array($isbn), 0);
+        $count = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchColumn(Constants::QUERY_COUNTBOOKSBYISBN10, array($isbn), 0);
         if ($count > 0)
         {
             return true;
@@ -77,8 +77,8 @@ class DBConnection
      */
     public function authorExistsByName($author)
     {
-        $sql = "SELECT COUNT(*) FROM author WHERE auth_name = ?";
-        $count = $this->app['dbs']['mysql']->fetchColumn($sql, array($author), 0);
+        $count = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchColumn(Constants::QUERY_COUNTAUTHORSBYNAME, array($author), 0);
         if ($count > 0)
         {
             return true;
@@ -93,14 +93,14 @@ class DBConnection
      */
     public function findAllApis()
     {
-        $sql = 'SELECT ba_name FROM books_api';
-        $booksApi = $this->app['dbs']['mysql']->fetchAll($sql);
+        $booksApi = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchAll(Constants::QUERY_SELECTALLAPISNAME);
 
         $apiArray = [];
         $count=0;
         while(count($booksApi) != $count)
         {
-            $apiArray[$count] = $booksApi[$count]['ba_name'];
+            $apiArray[$count] = $booksApi[$count][Constants::API_NAME];
             $count++;
         }
 
@@ -114,14 +114,14 @@ class DBConnection
      */
     public function findAllDocuments()
     {
-        $sql = 'SELECT doc_name FROM documents';
-        $documents = $this->app['dbs']['mysql']->fetchAll($sql);
+        $documents = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchAll(Constants::QUERY_SELECTALLDOCUMENTSNAME);
 
         $documentsArray = [];
         $count = 0;
         while (count($documents) != $count)
         {
-            $documentsArray[$count] = $documents[$count]['doc_name'];
+            $documentsArray[$count] = $documents[$count][Constants::DOCUMENT_NAME];
             $count++;
         }
 
@@ -138,8 +138,8 @@ class DBConnection
      */
     public function findApiKeyByName($apiName)
     {
-        $sql = "SELECT ba_key FROM books_api WHERE ba_name= ?";
-        $key = $this->app['dbs']['mysql']->fetchColumn($sql, array($apiName), 0);
+        $key = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchColumn(Constants::QUERY_SELECTAPIKEYBYNAME, array($apiName), 0);
         return $key;
     }
 
@@ -152,12 +152,18 @@ class DBConnection
      */
     public function findBookDataByISBN13($isbn)
     {
-        $sql = "SELECT * FROM linio_books, author, lb_author WHERE lb_isbnThirteen = ? AND lb_id_fk = lb_id
-            AND auth_id = auth_id_fk";
-        $bookDB = $this->app['dbs']['mysql']->fetchAssoc($sql, array($isbn));
-        $book = Book::buildComplete($bookDB['LB_isbnTen'], $bookDB['LB_isbnThirteen'], $bookDB['LB_title'],
-            $bookDB['auth_name'], $bookDB['LB_publisher'], $bookDB['LB_description'], $bookDB['LB_pages'],
-            $bookDB['LB_imageLink']);
+        $bookDB = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchAssoc(Constants::QUERY_SELECTBOOKDATABYISBN13, array($isbn));
+        $book = Book::buildComplete(
+            $bookDB[Constants::BOOK_ISBN10],
+            $bookDB[Constants::BOOK_ISBN13],
+            $bookDB[Constants::BOOK_TITLE],
+            $bookDB[Constants::AUTHOR_NAME],
+            $bookDB[Constants::BOOK_PUBLISHER],
+            $bookDB[Constants::BOOK_DESCRIPTION],
+            $bookDB[Constants::BOOK_NUMPAGES],
+            $bookDB[Constants::BOOK_IMAGELINK]
+        );
         return $book;
     }
 
@@ -170,18 +176,24 @@ class DBConnection
      */
     public function findBookDataByISBN10($isbn)
     {
-        $sql = "SELECT * FROM linio_books, author, lb_author WHERE lb_isbnTen = ? AND lb_id_fk = lb_id
-             AND auth_id = auth_id_fk";
-        $bookDB = $this->app['dbs']['mysql']->fetchAssoc($sql, array($isbn));
-        $book = Book::buildComplete($bookDB['LB_isbnTen'], $bookDB['LB_isbnThirteen'], $bookDB['LB_title'],
-            $bookDB['auth_name'], $bookDB['LB_publisher'], $bookDB['LB_description'], $bookDB['LB_pages'],
-            $bookDB['LB_imageLink']);
+        $bookDB = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchAssoc(Constants::QUERY_SELECTBOOKDATABYISBN10, array($isbn));
+        $book = Book::buildComplete(
+            $bookDB[Constants::BOOK_ISBN10],
+            $bookDB[Constants::BOOK_ISBN13],
+            $bookDB[Constants::BOOK_TITLE],
+            $bookDB[Constants::AUTHOR_NAME],
+            $bookDB[Constants::BOOK_PUBLISHER],
+            $bookDB[Constants::BOOK_DESCRIPTION],
+            $bookDB[Constants::BOOK_NUMPAGES],
+            $bookDB[Constants::BOOK_IMAGELINK]
+        );
         return $book;
     }
 
     /**
      * Searches the database for books by using isbn13,
-     * adds the isbns of the books that werent found into the isbnsNotFound variable
+     * adds the isbns of the books that weren't found into the isbnsNotFound variable
      *
      * @param array $isbns
      * @param array $isbnsNotFound
@@ -218,8 +230,8 @@ class DBConnection
      */
     public function findBookIdByISBN13($book)
     {
-        $sql = "SELECT LB_id FROM linio_books WHERE LB_isbnThirteen = ?";
-        $id = $this->app['dbs']['mysql']->fetchColumn($sql, array($book->getIsbn13()));
+        $id = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchColumn(Constants::QUERY_SELECTBOOKIDBYISBN13, array($book->getIsbn13()));
         return $id;
     }
 
@@ -236,15 +248,7 @@ class DBConnection
         $authorsIds = [];
         foreach($authors as $author)
         {
-            if (!$this->authorExistsByName($author))
-            {
-                $sql = "author";
-                $authorData = $this->buildInsertAuthorArray($author);
-                $this->app['dbs']['mysql']->insert($sql, $authorData);
-            }
-            $sql = "SELECT auth_id FROM author where auth_name = ?";
-            $id = $this->app['dbs']['mysql']->fetchColumn($sql, array($author));
-            $authorsIds[] = $id;
+            $authorsIds[] = $this->insertSingleAuthor($author);
         }
         return $authorsIds;
     }
@@ -259,12 +263,12 @@ class DBConnection
     public function insertSingleAuthor($author)
     {
         if (!$this->authorExistsByName($author)) {
-            $sql = "author";
             $authorData = $this->buildInsertAuthorArray($author);
-            $this->app['dbs']['mysql']->insert($sql, $authorData);
+            $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+                ->insert(Constants::AUTHOR_TABLE, $authorData);
         }
-        $sql = "SELECT auth_id FROM author where auth_name = ?";
-        $id = $this->app['dbs']['mysql']->fetchColumn($sql, array($author));
+        $id = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchColumn(Constants::QUERY_SELECTAUTHORIDBYNAME, array($author));
         return $id;
     }
 
@@ -278,8 +282,8 @@ class DBConnection
     public function buildInsertAuthorArray($author)
     {
         $insertData = [];
-        $insertData['auth_id'] = null;
-        $insertData['auth_name'] = trim($author,"'");
+        $insertData[Constants::AUTHOR_ID] = null;
+        $insertData[Constants::AUTHOR_NAME] = trim($author,"'");
         return $insertData;
     }
 
@@ -291,18 +295,18 @@ class DBConnection
     public function insertNewBook($book)
     {
         if (!$this->bookExistsByISBN13($book->getIsbn13())) {
-            $sql = 'linio_books';
             $bookData = $book->getInsertArray();
-            $this->app['dbs']['mysql']->insert($sql, $bookData);
+            $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+                ->insert(Constants::BOOK_TABLE, $bookData);
 
             $bookId = $this->findBookIdByISBN13($book);
             $authorsIds = $this->insertSingleAuthor($book->getAuthors());
 
             $insertData = [];
-            $sql = "lb_author";
-            $insertData['lb_id_fk'] = $bookId;
-            $insertData['auth_id_fk'] = $authorsIds;
-            $this->app['dbs']['mysql']->insert($sql, $insertData);
+            $insertData[Constants::BOOK_FK_ID] = $bookId;
+            $insertData[Constants::AUTHOR_FK_ID] = $authorsIds;
+            $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+                ->insert(Constants::BOOK_AUTHOR_RELATION_TABLE, $insertData);
         }
 
     }
@@ -316,12 +320,18 @@ class DBConnection
      */
     public function findBookInfoById($bookId)
     {
-        $sql = "select * from linio_books, author, lb_author where lb_id =? AND lb_id_fk = lb_id
-             AND auth_id = auth_id_fk";
-        $bookDB = $this->app['dbs']['mysql']->fetchAssoc($sql, array($bookId));
-        $book = Book::buildComplete($bookDB['LB_isbnTen'], $bookDB['LB_isbnThirteen'], $bookDB['LB_title'],
-            $bookDB['auth_name'], $bookDB['LB_publisher'], $bookDB['LB_description'], $bookDB['LB_pages'],
-            $bookDB['LB_imageLink']);
+        $bookDB = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchAssoc(Constants::QUERY_SELECTBOOKINFOBYID, array($bookId));
+        $book = Book::buildComplete(
+            $bookDB[Constants::BOOK_ISBN10],
+            $bookDB[Constants::BOOK_ISBN13],
+            $bookDB[Constants::BOOK_TITLE],
+            $bookDB[Constants::AUTHOR_NAME],
+            $bookDB[Constants::BOOK_PUBLISHER],
+            $bookDB[Constants::BOOK_DESCRIPTION],
+            $bookDB[Constants::BOOK_NUMPAGES],
+            $bookDB[Constants::BOOK_IMAGELINK]
+        );
         return $book;
 
     }
@@ -337,17 +347,21 @@ class DBConnection
     {
         if(!is_null($filename))
         {
-            $sql = "select lb_isbnTen, lb_isbnThirteen, lb_title, auth_name, lb_publisher, lb_description, lb_pages,
-            lb_imageLink from linio_books as lb, author as auth, lb_author as lba, documents as doc, lb_doc as lbd
-            where doc.doc_name=? and doc.doc_id = lbd.doc_id_fk and lb.LB_id = lbd.lb_id_fk
-            and lba.lb_id_fk = lb.LB_id and lba.auth_id_fk = auth.auth_id";
-            $booksDBArray = $this->app['dbs']['mysql']->fetchAll($sql, array($filename));
+            $booksDBArray = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+                ->fetchAll(Constants::QUERY_SELECTBOOKINFOBYDOCNAME, array($filename));
             $booksArray = [];
             foreach ($booksDBArray as $bookDB)
             {
-                $book = Book::buildComplete($bookDB['lb_isbnTen'], $bookDB['lb_isbnThirteen'], $bookDB['lb_title'],
-                    $bookDB['auth_name'], $bookDB['lb_publisher'], $bookDB['lb_description'], $bookDB['lb_pages'],
-                    $bookDB['lb_imageLink']);
+                $book = Book::buildComplete(
+                    $bookDB[Constants::BOOK_ISBN10],
+                    $bookDB[Constants::BOOK_ISBN13],
+                    $bookDB[Constants::BOOK_TITLE],
+                    $bookDB[Constants::AUTHOR_NAME],
+                    $bookDB[Constants::BOOK_PUBLISHER],
+                    $bookDB[Constants::BOOK_DESCRIPTION],
+                    $bookDB[Constants::BOOK_NUMPAGES],
+                    $bookDB[Constants::BOOK_IMAGELINK]
+                );
                 $booksArray[] = $book;
             }
             return $booksArray;
@@ -367,10 +381,10 @@ class DBConnection
         if (!is_null($filename))
         {
             $insertData = [];
-            $sql = "documents";
-            $insertData['doc_id'] = null;
-            $insertData['doc_name'] = $filename;
-            $this->app['dbs']['mysql']->insert($sql,$insertData);
+            $insertData[Constants::DOCUMENT_ID] = null;
+            $insertData[Constants::DOCUMENT_NAME] = $filename;
+            $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+                ->insert(Constants::DOCUMENT_TABLE,$insertData);
             return true;
         }
         return false;
@@ -389,10 +403,10 @@ class DBConnection
         if (!is_null($bookId) &&  !is_null($docId))
         {
             $insertData = [];
-            $sql = "lb_doc";
-            $insertData['lb_id_fk'] = $bookId;
-            $insertData['doc_id_fk'] = $docId;
-            $this->app['dbs']['mysql']->insert($sql,$insertData);
+            $insertData[Constants::BOOK_FK_ID] = $bookId;
+            $insertData[Constants::DOCUMENT_FK_ID] = $docId;
+            $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+                ->insert(Constants::BOOK_DOC_RELATION_TABLE,$insertData);
             return true;
         }
         return false;
@@ -407,8 +421,8 @@ class DBConnection
      */
     public function findDocumentID($filename)
     {
-        $sql = "Select doc_id from documents where doc_name = ?";
-        $id = $this->app['dbs']['mysql']->fetchColumn($sql, array($filename));
+        $id = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchColumn(Constants::QUERY_SELECTDOCIDBYDOCNAME, array($filename));
         return $id;
     }
 
@@ -422,8 +436,8 @@ class DBConnection
      */
     public function relationshipBookDocExists($bookId, $docId)
     {
-        $sql = "select count(*) from lb_doc where lb_id_fk= ? and doc_id_fk= ?";
-        $count = $this->app['dbs']['mysql']->fetchColumn($sql, array($bookId, $docId));
+        $count = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchColumn(Constants::QUERY_COUNTBOOKDOCRELATION, array($bookId, $docId));
         if ($count > 0)
         {
             return true;

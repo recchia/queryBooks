@@ -24,14 +24,14 @@ class Constants
      * ################################################################################################################
      */
         const BOOK_TABLE                    =   'linio_books';
-        const BOOK_ID                       =   'lb_id';
-        const BOOK_ISBN10                   =   'lb_isbnTen';
-        const BOOK_ISBN13                   =   'lb_isbnThirteen';
-        const BOOK_TITLE                    =   'lb_title';
-        const BOOK_PUBLISHER                =   'lb_publisher';
-        const BOOK_DESCRIPTION              =   'lb_description';
-        const BOOK_NUMPAGES                 =   'lb_pages';
-        const BOOK_IMAGELINK                =   'lb_imageLink';
+        const BOOK_ID                       =   'LB_id';
+        const BOOK_ISBN10                   =   'LB_isbnTen';
+        const BOOK_ISBN13                   =   'LB_isbnThirteen';
+        const BOOK_TITLE                    =   'LB_title';
+        const BOOK_PUBLISHER                =   'LB_publisher';
+        const BOOK_DESCRIPTION              =   'LB_description';
+        const BOOK_NUMPAGES                 =   'LB_pages';
+        const BOOK_IMAGELINK                =   'LB_imageLink';
 
     /**
      * ################################################################################################################
@@ -191,7 +191,7 @@ class Constants
          * Selects a documents id by its name
          */
         const QUERY_SELECTDOCIDBYDOCNAME    =   "SELECT ". Constants::DOCUMENT_ID .
-                                                "FROM ". Constants::DOCUMENT_TABLE .
+                                                " FROM ". Constants::DOCUMENT_TABLE .
                                                 " WHERE ". Constants::DOCUMENT_NAME ." = ?";
 
 
