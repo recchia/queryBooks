@@ -47,7 +47,7 @@ $app->post('/download', function (Request $request) use ($app) {
 
             $filename = $documentsArray[$data['files']];
 
-            $books = $database->getBooksFromFilename($filename);
+            $books = $database->findBooksFromFilename($filename);
 
             $phpExcel = new PHPExcel();
             $phpExcel->getProperties()->setCreator('Linio Books')
@@ -110,7 +110,7 @@ $app->post('/find', function (Request $request) use ($app) {
 
             if($data['api'] == 0) {
 
-                $key = $database->findApiKey('Google Books Api');
+                $key = $database->findApiKeyByName('Google Books Api');
 
                 $api = new GoogleBooksApiAdapter(['api_key' => $key]);
                 $book = $api->findOne($data['isbn']);
@@ -166,10 +166,10 @@ $app->post('/uploader', function (Request $request) use ($app) {
 
             $database = new DBConnection($app);
             $isbnsNotFound = [];
-            $booksLinio = $database->findBookArray($isbns,$isbnsNotFound);
+            $booksLinio = $database->findBookArrayByISBN13($isbns,$isbnsNotFound);
 
             if(!is_null($isbnsNotFound)) {
-                $key = $database->findApiKey('Google Books Api');
+                $key = $database->findApiKeyByName('Google Books Api');
                 $api = new GoogleBooksApiAdapter(['api_key' => $key]);
                 $api->find($isbnsNotFound, $app);
             }

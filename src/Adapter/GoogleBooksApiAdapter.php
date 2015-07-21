@@ -177,7 +177,7 @@ class GoogleBooksApiAdapter implements AdapterInterface
 
                     $book = Book::buildComplete($isbn10, $isbn13, $volumeInfo['title'], $author, $volumeInfo['publisher'],
                         $volumeInfo['description'], $volumeInfo['pageCount'], $imageLink);
-                    $database->addNewBook($book);
+                    $database->insertNewBook($book);
                     $data[] = $book;
                 }
             }
