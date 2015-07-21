@@ -15,17 +15,21 @@ class Constants
      *                                          Google Books API Info
      * ################################################################################################################
      */
-    const GOOGLE_BOOKS_ISBN = 'isbn';
-    const GOOGLE_BOOKS_INDUSTRY = 'industryIdentifiers';
-    const GOOGLE_BOOKS_IDENTIFIER = 'identifier';
-    const GOOGLE_BOOKS_AUTHORS = 'authors';
-    const GOOGLE_BOOKS_MODELDATA = 'modelData';
-    const GOOGLE_BOOKS_IMAGELINKS = 'imageLinks';
-    const GOOGLE_BOOKS_THUMBNAIL = 'thumbnail';
-    const GOOGLE_BOOKS_TITLE = 'title';
-    const GOOGLE_BOOKS_PUBLISHER = 'publisher';
-    const GOOGLE_BOOKS_DESCRIPTION = 'description';
-    const GOOGLE_BOOKS_PAGECOUNT = 'pageCount';
+    const GOOGLE_BOOKS_QUERY                =   'isbn:';
+    const GOOGLE_BOOKS_LABEL_INDUSTRY       =   'industryIdentifiers';
+    const GOOGLE_BOOKS_LABEL_IDENTIFIER     =   'identifier';
+    const GOOGLE_BOOKS_LABEL_AUTHORS        =   'authors';
+    const GOOGLE_BOOKS_LABEL_MODELDATA      =   'modelData';
+    const GOOGLE_BOOKS_LABEL_IMAGELINKS     =   'imageLinks';
+    const GOOGLE_BOOKS_LABEL_THUMBNAIL      =   'thumbnail';
+    const GOOGLE_BOOKS_LABEL_TITLE          =   'title';
+    const GOOGLE_BOOKS_LABEL_PUBLISHER      =   'publisher';
+    const GOOGLE_BOOKS_LABEL_DESCRIPTION    =   'description';
+    const GOOGLE_BOOKS_LABEL_PAGECOUNT      =   'pageCount';
+    const GOOGLE_BOOKS_LABEL_API_KEY        =   'api_key';
+    const GOOGLE_BOOKS_LABEL_LANGRESTRICT   =   'langRestrict';
+    const GOOGLE_BOOKS_LANGRESTRICT         =   'es';
+
 
     /**
      * ################################################################################################################
