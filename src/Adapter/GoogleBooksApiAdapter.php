@@ -55,55 +55,42 @@ class GoogleBooksApiAdapter implements AdapterInterface
      * @param string $isbn
      *
      * @return Book
-     *
+     * @throws ApiException
      * @throws BookNotFoundException
      */
     public function findOne($isbn)
     {
         try {
             $q = 'isbn:' . $isbn;
-            //$book = [];
             $result = $this->booksApi->volumes->listVolumes($q, $this->params);
             $items = $result->getItems();
             if (count($items) > 0) {
                 $volumeInfo = $items[0]->getVolumeInfo();
 
-                if(strlen($volumeInfo['industryIdentifiers'][0]['identifier']) == 13)
-                {
-                    if (isset($volumeInfo['industryIdentifiers'][0])) {
-                        $isbn13 = $volumeInfo['industryIdentifiers'][0]['identifier'];
-                    }
-                    else
-                    {
-                        $isbn13 = "N/A";
-                    }
-                    if (isset($volumeInfo['industryIdentifiers'][1])) {
-                        $isbn10 = $volumeInfo['industryIdentifiers'][1]['identifier'];
-                    }
-                   else
-                   {
-                       $isbn10 = "N/A";
-                   }
+                $numIsbn13 = 0;
+                $numIsbn10 = 1;
+                if(strlen($volumeInfo['industryIdentifiers'][0]['identifier']) != 13) {
+                    $numIsbn10 = 0;
+                    $numIsbn13 = 1;
+                }
+
+                if (isset($volumeInfo['industryIdentifiers'][$numIsbn13])) {
+                    $isbn13 = $volumeInfo['industryIdentifiers'][$numIsbn13]['identifier'];
                 }
                 else
                 {
-                    if (isset($volumeInfo['industryIdentifiers'][1])) {
-                        $isbn13 = $volumeInfo['industryIdentifiers'][1]['identifier'];
-                    }
-                    else
-                    {
-                        $isbn13 = "N/A";
-                    }
-                    if (isset($volumeInfo['industryIdentifiers'][0])) {
-                        $isbn10 = $volumeInfo['industryIdentifiers'][0]['identifier'];
-                    }
-                    else
-                    {
-                        $isbn10 = "N/A";
-                    }
+                    $isbn13 = "N/A";
                 }
+                if (isset($volumeInfo['industryIdentifiers'][$numIsbn10])) {
+                    $isbn10 = $volumeInfo['industryIdentifiers'][$numIsbn10]['identifier'];
+                }
+                else
+                {
+                    $isbn10 = "N/A";
+                }
+
                 $author = (is_array($volumeInfo['authors'])) ? implode(', ', $volumeInfo['authors']) : $volumeInfo['authors'];
-                $imageLink = (!empty($volumeInfo['modelData']['imageLinks']['thumbnail'])) ? $volumeInfo['modelData']['imageLinks']['thumbnail'] : '';
+                $imageLink = (!empty($volumeInfo['modelData']['imageLinks']['thumbnail'])) ? $volumeInfo['modelData']['imageLinks'][''] : '';
 
                 $book = Book::buildComplete($isbn10, $isbn13, $volumeInfo['title'], $author, $volumeInfo['publisher'],
                     $volumeInfo['description'], $volumeInfo['pageCount'], $imageLink);
@@ -138,40 +125,28 @@ class GoogleBooksApiAdapter implements AdapterInterface
                 if (count($items) > 0) {
                     $volumeInfo = $items[0]->getVolumeInfo();
 
-                    if(strlen($volumeInfo['industryIdentifiers'][0]['identifier']) == 13)
-                    {
-                        if (isset($volumeInfo['industryIdentifiers'][0])) {
-                            $isbn13 = $volumeInfo['industryIdentifiers'][0]['identifier'];
-                        }
-                        else
-                        {
-                            $isbn13 = "N/A";
-                        }
-                        if (isset($volumeInfo['industryIdentifiers'][1])) {
-                            $isbn10 = $volumeInfo['industryIdentifiers'][1]['identifier'];
-                        }
-                        else
-                        {
-                            $isbn10 = "N/A";
-                        }
+                    $numIsbn13 = 0;
+                    $numIsbn10 = 1;
+                    if(strlen($volumeInfo['industryIdentifiers'][0]['identifier']) != 13) {
+                        $numIsbn10 = 0;
+                        $numIsbn13 = 1;
+                    }
+
+                    if (isset($volumeInfo['industryIdentifiers'][$numIsbn13])) {
+                        $isbn13 = $volumeInfo['industryIdentifiers'][$numIsbn13]['identifier'];
                     }
                     else
                     {
-                        if (isset($volumeInfo['industryIdentifiers'][1])) {
-                            $isbn13 = $volumeInfo['industryIdentifiers'][1]['identifier'];
-                        }
-                        else
-                        {
-                            $isbn13 = "N/A";
-                        }
-                        if (isset($volumeInfo['industryIdentifiers'][0])) {
-                            $isbn10 = $volumeInfo['industryIdentifiers'][0]['identifier'];
-                        }
-                        else
-                        {
-                            $isbn10 = "N/A";
-                        }
+                        $isbn13 = "N/A";
                     }
+                    if (isset($volumeInfo['industryIdentifiers'][$numIsbn10])) {
+                        $isbn10 = $volumeInfo['industryIdentifiers'][$numIsbn10]['identifier'];
+                    }
+                    else
+                    {
+                        $isbn10 = "N/A";
+                    }
+
                     $author = (is_array($volumeInfo['authors'])) ? implode(', ', $volumeInfo['authors']) : $volumeInfo['authors'];
                     $imageLink = (!empty($volumeInfo['modelData']['imageLinks']['thumbnail'])) ? $volumeInfo['modelData']['imageLinks']['thumbnail'] : '';
 

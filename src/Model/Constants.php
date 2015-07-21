@@ -12,6 +12,23 @@ class Constants
 {
     /**
      * ################################################################################################################
+     *                                          Google Books API Info
+     * ################################################################################################################
+     */
+    const GOOGLE_BOOKS_ISBN = 'isbn';
+    const GOOGLE_BOOKS_INDUSTRY = 'industryIdentifiers';
+    const GOOGLE_BOOKS_IDENTIFIER = 'identifier';
+    const GOOGLE_BOOKS_AUTHORS = 'authors';
+    const GOOGLE_BOOKS_MODELDATA = 'modelData';
+    const GOOGLE_BOOKS_IMAGELINKS = 'imageLinks';
+    const GOOGLE_BOOKS_THUMBNAIL = 'thumbnail';
+    const GOOGLE_BOOKS_TITLE = 'title';
+    const GOOGLE_BOOKS_PUBLISHER = 'publisher';
+    const GOOGLE_BOOKS_DESCRIPTION = 'description';
+    const GOOGLE_BOOKS_PAGECOUNT = 'pageCount';
+
+    /**
+     * ################################################################################################################
      *                                          Database info
      * ################################################################################################################
      */
