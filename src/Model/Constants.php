@@ -38,6 +38,12 @@ class Constants
      */
         const DATABASE_SERVICE              =   'dbs';
         const DATABASE_MYSQL                =   'mysql';
+        const DATABASE_DRIVER               =   'pdo_mysql';
+        const DATABASE_HOST                 =   'localhost';
+        const DATABASE_NAME                 =   'querybooksdb';
+        const DATABASE_USER                 =   'website';
+        const DATABASE_PASSWORD             =   'liniobooksapi';
+        const DATABASE_CHARSET              =   'utf8mb4';
 
     /**
      * ################################################################################################################
