@@ -69,78 +69,16 @@ class Book
      */
     public static function buildComplete($isbn10, $isbn13, $title, $authors, $publisher, $description, $pageCount, $imageLink)
     {
-        if (is_null($publisher))
-        {
-            $publisher = "N/A";
-        }
-        if (is_null($pageCount))
-        {
-            $pageCount = "N/A";
-        }
-        if (is_null($isbn10))
-        {
-            $isbn10 = "N/A";
-        }
-        if (is_null($isbn13))
-        {
-            $isbn13 = "N/A";
-        }
-        if (is_null($title))
-        {
-            $title = "N/A";
-        }
-        if (is_null($authors))
-        {
-            $authors = "N/A";
-        }
-        if (is_null($publisher))
-        {
-            $publisher = "N/A";
-        }
-        if (is_null($description))
-        {
-            $description = "N/A";
-        }
-        if (is_null($pageCount))
-        {
-            $pageCount = "N/A";
-        }
-        if (is_null($imageLink))
-        {
-            $imageLink = "N/A";
-        }
 
         $instance = new self();
-        $instance->isbn10 = $isbn10;
-        $instance->isbn13 = $isbn13;
-        $instance->title = $title;
-        $instance->authors = $authors;
-        $instance->publisher = $publisher;
-        $instance->description = $description;
-        $instance->pageCount = $pageCount;
-        $instance->imageLink = $imageLink;
-        return $instance;
-    }
-
-    /**
-     * @param $title
-     * @param $authors
-     * @param $publisher
-     * @param $description
-     * @param $pageCount
-     * @param $imageLink
-     *
-     * @return Book
-     */
-    public static function buildWithoutIsbn( $title, $authors, $publisher, $description, $pageCount, $imageLink)
-    {
-        $instance = new self();
-        $instance->title = $title;
-        $instance->authors = $authors;
-        $instance->publisher = $publisher;
-        $instance->description = $description;
-        $instance->pageCount = $pageCount;
-        $instance->imageLink = $imageLink;
+        $instance->setIsbn10($isbn10);
+        $instance->setIsbn13($isbn13);
+        $instance->setTitle($title);
+        $instance->setAuthors($authors);
+        $instance->setPublisher($publisher);
+        $instance->setDescription($description);
+        $instance->setPageCount($pageCount);
+        $instance->setImageLink($imageLink);
         return $instance;
     }
 
