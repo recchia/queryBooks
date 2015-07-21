@@ -13,6 +13,13 @@ use Symfony\Component\Validator\Constraints;
  */
 class FindType extends AbstractType
 {
+    protected $apis;
+
+    public function __construct (array $apis)
+    {
+        $this->apis = $apis;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
@@ -21,7 +28,7 @@ class FindType extends AbstractType
                     'constraints' => new Constraints\NotBlank(['message' => 'El campo ISBN es obligatorio']),
                     ])
                 ->add('api', 'choice', [
-                    'choices' => ['google_book' => 'Google Books API'],
+                    'choices' => ['APis' => $this->apis],
                     'label' => 'Api',
                 ])
                 ->add('search', 'submit', ['label' => 'Buscar']);

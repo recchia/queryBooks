@@ -2,6 +2,8 @@
 
 namespace Interfaces;
 
+use Silex\Application;
+
 /**
  * @author recchia
  */
@@ -30,7 +32,9 @@ interface AdapterInterface
      *
      * @param array $isbns
      *
+     * @param Application $app
+     *
      * @return array
      */
-    public function find(array $isbns);
+    public function find(array $isbns, Application $app);
 }

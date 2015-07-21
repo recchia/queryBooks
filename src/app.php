@@ -27,6 +27,19 @@ $app['twig'] = $app->extend('twig', function ($twig, $app) {
     return $twig;
 });
 
+$app->register(new Silex\Provider\DoctrineServiceProvider(), array(
+    'dbs.options'  => array(
+        'mysql' => array(
+            'driver'    =>  'pdo_mysql',
+            'host'      =>  'localhost',
+            'dbname'    =>  'querybooksdb',
+            'user'      =>  'website',
+            'password'  =>  'liniobooksapi',
+            'charset'   =>  'utf8mb4',
+        ),
+    ),
+));
+
 define('ROOT', __DIR__ . '/../');
 
 return $app;

@@ -8,6 +8,10 @@ use Google_Client;
 use Google_Service_Books;
 use Interfaces\AdapterInterface;
 use Google_Service_Exception;
+use Model\Book;
+use Silex\Application;
+use Model\DBConnection;
+
 
 /**
  * Description of GoogleApiBooksAdapter.
@@ -50,25 +54,59 @@ class GoogleBooksApiAdapter implements AdapterInterface
      *
      * @param string $isbn
      *
-     * @return array
+     * @return Book
      *
      * @throws BookNotFoundException
      */
     public function findOne($isbn)
     {
         try {
-            $q = 'ISBN=' . $isbn;
-            $book = [];
+            $q = 'isbn:' . $isbn;
+            //$book = [];
             $result = $this->booksApi->volumes->listVolumes($q, $this->params);
             $items = $result->getItems();
             if (count($items) > 0) {
                 $volumeInfo = $items[0]->getVolumeInfo();
-                $book['title'] = $volumeInfo['title'];
-                $book['authors'] = (is_array($volumeInfo['authors'])) ? implode(', ', $volumeInfo['authors']) : $volumeInfo['authors'];
-                $book['publisher'] = $volumeInfo['publisher'];
-                $book['description'] = $volumeInfo['description'];
-                $book['pageCount'] = $volumeInfo['pageCount'];
-                $book['imageLink'] = (!empty($volumeInfo['modelData']['imageLinks']['thumbnail'])) ? $volumeInfo['modelData']['imageLinks']['thumbnail'] : '';
+
+                if(strlen($volumeInfo['industryIdentifiers'][0]['identifier']) == 13)
+                {
+                    if (isset($volumeInfo['industryIdentifiers'][0])) {
+                        $isbn13 = $volumeInfo['industryIdentifiers'][0]['identifier'];
+                    }
+                    else
+                    {
+                        $isbn13 = "N/A";
+                    }
+                    if (isset($volumeInfo['industryIdentifiers'][1])) {
+                        $isbn10 = $volumeInfo['industryIdentifiers'][1]['identifier'];
+                    }
+                   else
+                   {
+                       $isbn10 = "N/A";
+                   }
+                }
+                else
+                {
+                    if (isset($volumeInfo['industryIdentifiers'][1])) {
+                        $isbn13 = $volumeInfo['industryIdentifiers'][1]['identifier'];
+                    }
+                    else
+                    {
+                        $isbn13 = "N/A";
+                    }
+                    if (isset($volumeInfo['industryIdentifiers'][0])) {
+                        $isbn10 = $volumeInfo['industryIdentifiers'][0]['identifier'];
+                    }
+                    else
+                    {
+                        $isbn10 = "N/A";
+                    }
+                }
+                $author = (is_array($volumeInfo['authors'])) ? implode(', ', $volumeInfo['authors']) : $volumeInfo['authors'];
+                $imageLink = (!empty($volumeInfo['modelData']['imageLinks']['thumbnail'])) ? $volumeInfo['modelData']['imageLinks']['thumbnail'] : '';
+
+                $book = Book::buildComplete($isbn10, $isbn13, $volumeInfo['title'], $author, $volumeInfo['publisher'],
+                    $volumeInfo['description'], $volumeInfo['pageCount'], $imageLink);
 
                 return $book;
             } else {
@@ -80,29 +118,66 @@ class GoogleBooksApiAdapter implements AdapterInterface
     }
 
     /**
-     * Find books by ISBN.
+     * Find books by isbns
      *
      * @param array $isbns
      *
+     * @param Application $app
+     *
      * @return array
      */
-    public function find(array $isbns)
+    public function find(array $isbns, Application $app)
     {
         if (is_array($isbns)) {
             $data = [];
+            $database = new DBConnection($app);
             foreach ($isbns as $isbn) {
-                $q = 'ISBN=' . $isbn;
-                $book = [];
+                $q = 'isbn:' . $isbn;
                 $result = $this->booksApi->volumes->listVolumes($q, $this->params);
                 $items = $result->getItems();
                 if (count($items) > 0) {
                     $volumeInfo = $items[0]->getVolumeInfo();
-                    $book['title'] = $volumeInfo['title'];
-                    $book['authors'] = (is_array($volumeInfo['authors'])) ? implode(', ', $volumeInfo['authors']) : $volumeInfo['authors'];
-                    $book['publisher'] = $volumeInfo['publisher'];
-                    $book['description'] = $volumeInfo['description'];
-                    $book['pageCount'] = $volumeInfo['pageCount'];
-                    $book['imageLink'] = (!empty($volumeInfo['modelData']['imageLinks']['thumbnail'])) ? $volumeInfo['modelData']['imageLinks']['thumbnail'] : '';
+
+                    if(strlen($volumeInfo['industryIdentifiers'][0]['identifier']) == 13)
+                    {
+                        if (isset($volumeInfo['industryIdentifiers'][0])) {
+                            $isbn13 = $volumeInfo['industryIdentifiers'][0]['identifier'];
+                        }
+                        else
+                        {
+                            $isbn13 = "N/A";
+                        }
+                        if (isset($volumeInfo['industryIdentifiers'][1])) {
+                            $isbn10 = $volumeInfo['industryIdentifiers'][1]['identifier'];
+                        }
+                        else
+                        {
+                            $isbn10 = "N/A";
+                        }
+                    }
+                    else
+                    {
+                        if (isset($volumeInfo['industryIdentifiers'][1])) {
+                            $isbn13 = $volumeInfo['industryIdentifiers'][1]['identifier'];
+                        }
+                        else
+                        {
+                            $isbn13 = "N/A";
+                        }
+                        if (isset($volumeInfo['industryIdentifiers'][0])) {
+                            $isbn10 = $volumeInfo['industryIdentifiers'][0]['identifier'];
+                        }
+                        else
+                        {
+                            $isbn10 = "N/A";
+                        }
+                    }
+                    $author = (is_array($volumeInfo['authors'])) ? implode(', ', $volumeInfo['authors']) : $volumeInfo['authors'];
+                    $imageLink = (!empty($volumeInfo['modelData']['imageLinks']['thumbnail'])) ? $volumeInfo['modelData']['imageLinks']['thumbnail'] : '';
+
+                    $book = Book::buildComplete($isbn10, $isbn13, $volumeInfo['title'], $author, $volumeInfo['publisher'],
+                        $volumeInfo['description'], $volumeInfo['pageCount'], $imageLink);
+                    $database->insertNewBook($book);
                     $data[] = $book;
                 }
             }
