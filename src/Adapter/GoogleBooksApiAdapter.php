@@ -47,7 +47,7 @@ class GoogleBooksApiAdapter implements AdapterInterface
         $this->client->setApplicationName('');
         $this->client->setDeveloperKey($config[Constants::GOOGLE_BOOKS_LABEL_API_KEY]);
         $this->booksApi = new Google_Service_Books($this->client);
-        $this->params[Constants::GOOGLE_BOOKS_LABEL_LANGRESTRICT] = Constants::GOOGLE_BOOKS_LANGRESTRICT;
+        $this->params[Constants::GOOGLE_BOOKS_LABEL_LANGRES] = Constants::GOOGLE_BOOKS_LANGRESTRICT;
     }
 
     /**
