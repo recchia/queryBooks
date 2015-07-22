@@ -200,25 +200,19 @@ class DBConnection
      *
      * @return array
      */
-    public function findBookArrayByISBN13(array $isbns, array &$isbnsNotFound)
+    public function findISBN13NotInDatabase(array $isbns)
     {
-        $books = [];
+        $isbnsNotFound = [];
 
         foreach ($isbns as $isbn)
         {
-
             if (!$this->bookExistsByISBN13($isbn))
             {
                 $isbnsNotFound[] = $isbn;
             }
-            else
-            {
-                $book = $this->findBookDataByISBN13($isbn);
-                $books[] = $book;
-            }
         }
 
-        return $books;
+        return $isbnsNotFound;
     }
 
     /**
