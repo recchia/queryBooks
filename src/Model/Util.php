@@ -32,8 +32,18 @@ class Util
                 <p>Autor: " . $book->getAuthors() . "</p>
                 <p>Publicado por: " . $book->getPublisher() . "</p>
                 <p>Descripci&oacute;n: " . $book->getDescription() . "</p>
-                <p>N&uacute;mero de p&aacute;ginas: " . $book->getPageCount() . "</p>
-                <p><a href='" . $book->getImageLink() . "'>Ver Im&aacute;gen</a></p>";
+                <p>N&uacute;mero de p&aacute;ginas: " . $book->getPageCount() . "</p>";
+                if($book->getImageLink() != 'N/A' && $book->getImageLink() != '')
+                {
+
+                    $formattedResponse = $formattedResponse.
+                        "<p><a href='" . $book->getImageLink() . "'>Ver Im&aacute;gen</a></p>";
+                }
+                else
+                {
+                    $formattedResponse = $formattedResponse. "<p>Imagen No Disponible";
+                }
+
 
         return $formattedResponse;
 
