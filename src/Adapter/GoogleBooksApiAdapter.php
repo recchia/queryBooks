@@ -92,7 +92,7 @@ class GoogleBooksApiAdapter implements AdapterInterface
             $data = [];
             $database = new DBConnection($app);
             foreach ($isbns as $isbn) {
-                $q = 'isbn:' . $isbn;
+                $q =  Constants::GOOGLE_BOOKS_QUERY . $isbn;
                 $result = $this->booksApi->volumes->listVolumes($q, $this->params);
                 $items = $result->getItems();
                 if (count($items) > 0) {

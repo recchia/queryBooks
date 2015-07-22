@@ -84,11 +84,17 @@ $app->post('/uploader', function (Request $request) use ($app) {
 
             $database = new DBConnection($app);
             $isbnsNotFound = $database->findISBN13NotInDatabase($isbns);
-
-            if(!is_null($isbnsNotFound)) {
-                $key = $database->findApiKeyByName('Google Books Api');
-                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
-                $api->find($isbnsNotFound, $app);
+            $apiArray = $database->findAllApis();
+            $count = 0;
+            foreach($apiArray as $api)
+            {
+                if (!is_null($isbnsNotFound))
+                {
+                    $apiInfo = $database->findApiInfoFromName($api);
+                    $apiClass= new $apiInfo[Constants::API_CLASSNAME](['api_key' => $apiInfo[Constants::API_KEY]]);
+                    $apiClass->find($isbnsNotFound, $app);
+                }
+                $count++;
             }
 
             $filename= trim($filename,".xlsx") . time() . ".xlsx";
