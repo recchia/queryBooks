@@ -14,9 +14,13 @@ use Doctrine\DBAL;
 use Model\DBConnection;
 use Model\Book;
 use Model\ExcelWorker;
+use Model\Constants;
 
 //Request::setTrustedProxies(array('127.0.0.1'));
 
+/**
+ * Find book function
+ */
 $app->get('/', function () use ($app) {
 
     $database = new DBConnection($app);
@@ -32,6 +36,91 @@ $app->get('/', function () use ($app) {
 ->bind('homepage')
 ;
 
+/**
+ * Find Book Function
+ */
+$app->post('/find', function (Request $request) use ($app) {
+    try {
+        $database = new DBConnection($app);
+        $apiArray = $database->findAllApis();
+
+        $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm();
+        $form->handleRequest($request);
+        if ($form->isValid()) {
+            $data = $form->getData();
+
+            if($data['api'] == 0) {
+
+                $key = $database->findApiKeyByName('Google Books Api');
+
+                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
+                $book = $api->findOne($data['isbn']);
+                if ($request->isXmlHttpRequest()) {
+
+                    if (is_null($book->getPageCount())) {
+                        $book->setPageCount("N/A");
+                    }
+
+                    $formattedResponse = Util::getFindOneBookReturnMessage($book);
+
+                    return new JsonResponse($formattedResponse);
+                } else {
+                    return $app['twig']->render('books/show.html.twig', ['books' => $book]);
+                }
+            }
+        }
+    }
+    catch (BookNotFoundException $e)
+    {
+       return new JsonResponse(Constants::BOOKNOTFOUNDEXCEPTION_MSG);
+    }
+})->bind('find')
+;
+
+/**
+ * Upload Excel Function
+ */
+$app->post('/uploader', function (Request $request) use ($app) {
+    try {
+        ini_set('max_execution_time', 100000);
+        $upload = $app['form.factory']->createBuilder(new UploadType())->getForm();
+        $upload->handleRequest($request);
+
+        if ($upload->isValid()) {
+            $file = $request->files->get($upload->getName());
+            $path = ROOT . 'web/upload/';
+            $filename = $file['file']->getClientOriginalName();
+            $isbns = ExcelWorker::getISBNSFromExcelDocument($file, $path, $filename);
+
+            $database = new DBConnection($app);
+            $isbnsNotFound = $database->findISBN13NotInDatabase($isbns);
+
+            if(!is_null($isbnsNotFound)) {
+                $key = $database->findApiKeyByName('Google Books Api');
+                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
+                $api->find($isbnsNotFound, $app);
+            }
+
+            $filename= trim($filename,".xlsx") . time() . ".xlsx";
+            $database->saveFile($filename,$isbns);
+
+            return new JsonResponse(Util::getUploaderReturnMessage($filename));
+        } else {
+            return new JsonResponse(
+                json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($upload)])
+            );
+        }
+    }
+    catch (Exception $e)
+    {
+        return new JsonResponse($e->getMessage());
+    }
+})->bind('upload')
+;
+
+/**
+ * Download Excel Function
+ */
 $app->post('/download', function (Request $request) use ($app) {
 
     try
@@ -64,91 +153,9 @@ $app->post('/download', function (Request $request) use ($app) {
 })->bind('download')
 ;
 
-$app->post('/find', function (Request $request) use ($app) {
-    try {
-        $database = new DBConnection($app);
-        $apiArray = $database->findAllApis();
-
-        $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm();
-        $form->handleRequest($request);
-        if ($form->isValid()) {
-            $data = $form->getData();
-
-            if($data['api'] == 0) {
-
-                $key = $database->findApiKeyByName('Google Books Api');
-
-                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
-                $book = $api->findOne($data['isbn']);
-                if ($request->isXmlHttpRequest()) {
-
-                    if (is_null($book->getPageCount())) {
-                        $book->setPageCount("N/A");
-                    }
-
-                    $formattedResponse = "<p>ISBN 10: " . $book->getIsbn10() . "<br />
-                ISBN 13: " . $book->getIsbn13() . "</p>
-                <p>T&iacute;tulo: <strong>" . $book->getTitle() . "</strong></p>
-                <p>Autor: " . $book->getAuthors() . "</p>
-                <p>Publicado por: " . $book->getPublisher() . "</p>
-                <p>Descripci&oacute;n: " . $book->getDescription() . "</p>
-                <p>N&uacute;mero de p&aacute;ginas: " . $book->getPageCount() . "</p>
-                <p><a href='" . $book->getImageLink() . "'>Ver Im&aacute;gen</a></p>";
-
-                    return new JsonResponse($formattedResponse);
-                } else {
-                    return $app['twig']->render('books/show.html.twig', ['books' => $book]);
-                }
-            }
-        }
-    }
-    catch (BookNotFoundException $e)
-    {
-       return new JsonResponse("<strong>No se consigui&oacute; el libro buscado</strong>");
-    }
-})->bind('find')
-;
-
-
-$app->post('/uploader', function (Request $request) use ($app) {
-    try {
-        ini_set('max_execution_time', 100000);
-        $upload = $app['form.factory']->createBuilder(new UploadType())->getForm();
-        $upload->handleRequest($request);
-
-        if ($upload->isValid()) {
-            $file = $request->files->get($upload->getName());
-            $path = ROOT . 'web/upload/';
-            $filename = $file['file']->getClientOriginalName();
-            $isbns = ExcelWorker::getISBNSFromExcelDocument($file, $path, $filename);
-
-            $database = new DBConnection($app);
-            $isbnsNotFound = $database->findISBN13NotInDatabase($isbns);
-
-            if(!is_null($isbnsNotFound)) {
-                $key = $database->findApiKeyByName('Google Books Api');
-                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
-                $api->find($isbnsNotFound, $app);
-            }
-
-            $filename= trim($filename,".xlsx") . time() . ".xlsx";
-            $database->saveFile($filename,$isbns);
-
-            return new JsonResponse('<strong>Documento guardado como: '. $filename .', lo puede conseguir
-            en la parte de Descarga de Archivos</strong>');
-        } else {
-            return new JsonResponse(
-                json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($upload)])
-            );
-        }
-    }
-    catch (Exception $e)
-    {
-        return new JsonResponse($e->getMessage());
-    }
-})->bind('upload')
-;
-
+/**
+ * Get errors function
+ */
 $app->error(function (\Exception $e, Request $request, $code) use ($app) {
     if ($app['debug']) {
         return;
