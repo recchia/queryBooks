@@ -196,7 +196,6 @@ class DBConnection
      * adds the isbns of the books that weren't found into the isbnsNotFound variable
      *
      * @param array $isbns
-     * @param array $isbnsNotFound
      *
      * @return array
      */
@@ -227,6 +226,20 @@ class DBConnection
         $id = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
             ->fetchColumn(Constants::QUERY_SELECTBOOKIDBYISBN13, array($book->getIsbn13()));
         return $id;
+    }
+
+    /**
+     * Finds an apis info by its name from the database
+     *
+     * @param $apiName
+     *
+     * @return array
+     */
+    public function findApiInfoFromName($apiName)
+    {
+        $apiInfo = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchAssoc(Constants::QUERY_SELECTAPIINFOBYNAME, array($apiName));
+        return $apiInfo;
     }
 
     /**

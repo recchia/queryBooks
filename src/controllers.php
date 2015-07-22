@@ -43,30 +43,20 @@ $app->post('/find', function (Request $request) use ($app) {
     try {
         $database = new DBConnection($app);
         $apiArray = $database->findAllApis();
-
         $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm();
         $form->handleRequest($request);
         if ($form->isValid()) {
             $data = $form->getData();
 
-            if($data['api'] == 0) {
+            $apiInfo = $database->findApiInfoFromName($apiArray[$data['api']]);
+            $apiClass = new  $apiInfo[Constants::API_CLASSNAME](['api_key' => $apiInfo[Constants::API_KEY]]);
+            $book = $apiClass->findOne($data['isbn']);
+            if ($request->isXmlHttpRequest()) {
 
-                $key = $database->findApiKeyByName('Google Books Api');
+                return new JsonResponse( Util::getFindOneBookReturnMessage($book));
+            } else {
 
-                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
-                $book = $api->findOne($data['isbn']);
-                if ($request->isXmlHttpRequest()) {
-
-                    if (is_null($book->getPageCount())) {
-                        $book->setPageCount("N/A");
-                    }
-
-                    $formattedResponse = Util::getFindOneBookReturnMessage($book);
-
-                    return new JsonResponse($formattedResponse);
-                } else {
-                    return $app['twig']->render('books/show.html.twig', ['books' => $book]);
-                }
+                return $app['twig']->render('books/show.html.twig', ['books' => $book]);
             }
         }
     }
@@ -139,7 +129,7 @@ $app->post('/download', function (Request $request) use ($app) {
             $books = $database->findBooksFromFilename($filename);
             ExcelWorker::createExcelDocument($books, $filename);
 
-            return new JsonResponse('http://books.linio/upload/' . $filename);
+            return new JsonResponse(Constants::EXCEL_DOWNLOAD_LOCATION . $filename);
         } else {
             return new JsonResponse(
                 json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($download)])

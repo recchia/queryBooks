@@ -64,6 +64,7 @@ class Constants
         const EXCEL_CELL_F1                 =   'Descripcion';
         const EXCEL_CELL_G1                 =   'Numero de Paginas';
         const EXCEL_CELL_H1                 =   'Imagen';
+        const EXCEL_DOWNLOAD_LOCATION       =   'http://books.linio/upload/';
 
     /**
      * ################################################################################################################
@@ -105,6 +106,7 @@ class Constants
         const API_ID                        =   'ba_id';
         const API_NAME                      =   'ba_name';
         const API_KEY                       =   'ba_key';
+        const API_CLASSNAME                 =   'ba_classname';
 
     /**
      * ################################################################################################################
@@ -247,6 +249,13 @@ class Constants
         const QUERY_SELECTDOCIDBYDOCNAME    =   "SELECT ". Constants::DOCUMENT_ID .
                                                 " FROM ". Constants::DOCUMENT_TABLE .
                                                 " WHERE ". Constants::DOCUMENT_NAME ." = ?";
+        /**
+         * Selects Api info by its name
+         */
+        const QUERY_SELECTAPIINFOBYNAME     =   "SELECT ". Constants::API_KEY .", "
+                                                . Constants::API_CLASSNAME .
+                                                " FROM ". Constants::API_TABLE .
+                                                " WHERE ". Constants::API_NAME . " = ?";
 
 
 }
