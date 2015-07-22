@@ -144,7 +144,8 @@ class GoogleBooksApiAdapter implements AdapterInterface
 
 
         $imageLink = (!empty($volumeInfo[Constants::GOOGLE_BOOKS_LABEL_IMAGELINKS][Constants::GOOGLE_BOOKS_LABEL_THUMBNAIL]))
-            ? $volumeInfo[Constants::GOOGLE_BOOKS_LABEL_IMAGELINKS][''] : '';
+            ? $volumeInfo[Constants::GOOGLE_BOOKS_LABEL_IMAGELINKS][Constants::GOOGLE_BOOKS_LABEL_THUMBNAIL] : '';
+
 
         $book = Book::buildComplete(
             $isbn10,
@@ -156,7 +157,6 @@ class GoogleBooksApiAdapter implements AdapterInterface
             $volumeInfo[Constants::GOOGLE_BOOKS_LABEL_PAGECOUNT],
             $imageLink
         );
-
         return $book;
     }
 }
