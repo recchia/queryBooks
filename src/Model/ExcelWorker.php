@@ -16,22 +16,22 @@ class ExcelWorker
     public static function createExcelDocument($books, $filename)
     {
         $phpExcel = new PHPExcel();
-            $phpExcel->getProperties()->setCreator('Linio Books')
-                ->setLastModifiedBy('Linio')
-                ->setTitle('Office 2007 XLSX Test Document')
-                ->setSubject('Office 2007 XLSX Test Document')
-                ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
-                ->setKeywords('office 2007 openxml php')
-                ->setCategory('Test result file');
+            $phpExcel->getProperties()->setCreator(Constants::EXCEL_CREATOR)
+                ->setLastModifiedBy(Constants::EXCEL_LASTMODIFIED)
+                ->setTitle(Constants::EXCEL_TITLE)
+                ->setSubject(Constants::EXCEL_SUBJECT)
+                ->setDescription(Constants::EXCEL_DESCRIPTION)
+                ->setKeywords(Constants::EXCEL_KEYWORDS)
+                ->setCategory(Constants::EXCEL_CATEGORY);
             $phpExcel->setActiveSheetIndex(0);
-            $phpExcel->getActiveSheet()->setCellValue('A1', 'ISBN_10');
-            $phpExcel->getActiveSheet()->setCellValue('B1', 'ISBN_13');
-            $phpExcel->getActiveSheet()->setCellValue('C1', 'Titulo');
-            $phpExcel->getActiveSheet()->setCellValue('D1', 'Autor');
-            $phpExcel->getActiveSheet()->setCellValue('E1', 'Editorial');
-            $phpExcel->getActiveSheet()->setCellValue('F1', 'Descripcion');
-            $phpExcel->getActiveSheet()->setCellValue('G1', 'Numero de Paginas');
-            $phpExcel->getActiveSheet()->setCellValue('H1', 'Imagen');
+            $phpExcel->getActiveSheet()->setCellValue('A1', Constants::EXCEL_CELL_A1);
+            $phpExcel->getActiveSheet()->setCellValue('B1', Constants::EXCEL_CELL_B1);
+            $phpExcel->getActiveSheet()->setCellValue('C1', Constants::EXCEL_CELL_C1);
+            $phpExcel->getActiveSheet()->setCellValue('D1', Constants::EXCEL_CELL_D1);
+            $phpExcel->getActiveSheet()->setCellValue('E1', Constants::EXCEL_CELL_E1);
+            $phpExcel->getActiveSheet()->setCellValue('F1', Constants::EXCEL_CELL_F1);
+            $phpExcel->getActiveSheet()->setCellValue('G1', Constants::EXCEL_CELL_G1);
+            $phpExcel->getActiveSheet()->setCellValue('H1', Constants::EXCEL_CELL_H1);
 
             $i = 2;
             foreach ($books as $book) {
