@@ -153,7 +153,26 @@
                     dataType: 'json',
                     cache: false,
                     contentType: false,
-                    processData: false
+                    processData: false,
+                    success: function(data)
+                    {
+                        $.ajax({
+                            url: "{{ path("refreshCombo") }}",
+                            method: "GET",
+                            data: fData,
+                            dataType: 'json',
+                            cache: false,
+                            contentType: false,
+                            processData: false
+                        }).done(function(data){
+                            for (var i = 0; i < data.length; i++) {
+                                $("#download_form_files").append(
+                                        $("<option></option>").attr(
+                                                "value", data[i]).text(data[i])
+                                );
+                            }
+                        });
+                    }
                 })
                 .done(function(data) {
                     console.log(data);
@@ -161,6 +180,7 @@
                             $("#jumbotronUpload").attr('class', 'jumbotron show');
                             //$("#dwnld-iframe").attr('src', data);
                             $("#loading").hide();
+
                 });
             });
            $("#download_form").on("submit", function(event){

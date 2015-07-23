@@ -149,6 +149,22 @@ $app->post('/download', function (Request $request) use ($app) {
 })->bind('download')
 ;
 
+$app->get('/refreshCombo', function(Request $request) use ($app) {
+
+    try
+    {
+        $database = new DBConnection($app);
+        $docArray = $database->findAllDocuments();
+
+        return new JsonResponse($docArray);
+    }
+    catch (Exception $e)
+    {
+        return new JsonResponse($e->getMessage());
+    }
+
+})->bind('refreshCombo');
+
 /**
  * Get errors function
  */
