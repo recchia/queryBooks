@@ -28,6 +28,13 @@ class DBConnection
         $this->app = $app;
     }
 
+    public function findDocumentNameById ($id)
+    {
+        $doc = $this->app[Constants::DATABASE_SERVICE][Constants::DATABASE_MYSQL]
+            ->fetchAssoc("select doc_name where doc_id = ?", array($id));
+        return $doc[Constants::DOCUMENT_NAME];
+    }
+
     /**
      *
      * Validates if book exists by using its isbn13

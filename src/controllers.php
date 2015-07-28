@@ -29,7 +29,7 @@ $app->get('/', function () use ($app) {
 
     $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm()->createView();
     $upload = $app['form.factory']->createBuilder(new UploadType())->getForm()->createView();
-    $download = $app['form.factory']->createBuilder(new DownloadType($docArray))->getForm()->createView();
+    $download = $app['form.factory']->createBuilder(new DownloadType($docArray, $app))->getForm()->createView();
 
     return $app['twig']->render('books/index.html.twig', ['form' => $form, 'upload' => $upload, 'download' => $download]);
 })
@@ -125,8 +125,10 @@ $app->post('/download', function (Request $request) use ($app) {
         $database = new DBConnection($app);
         $documentsArray = $database->findAllDocuments();
 
-        $download = $app['form.factory']->createBuilder(new DownloadType($documentsArray))->getForm();
+        $download = $app['form.factory']->createBuilder(new DownloadType($documentsArray, $app))->getForm();
         $download ->handleRequest($request);
+        $download->bind($request);
+
         if ($download->isValid()){
             $data = $download->getData();
 
@@ -149,13 +151,12 @@ $app->post('/download', function (Request $request) use ($app) {
 })->bind('download')
 ;
 
-$app->get('/refreshCombo', function(Request $request) use ($app) {
+$app->post('/refreshCombo', function(Request $request) use ($app) {
 
     try
     {
         $database = new DBConnection($app);
         $docArray = $database->findAllDocuments();
-
         return new JsonResponse($docArray);
     }
     catch (Exception $e)

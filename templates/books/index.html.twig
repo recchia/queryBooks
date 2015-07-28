@@ -156,9 +156,10 @@
                     processData: false,
                     success: function(data)
                     {
+                        var fData = new FormData(document.getElementById('download_form'));
                         $.ajax({
                             url: "{{ path("refreshCombo") }}",
-                            method: "GET",
+                            method: "POST",
                             data: fData,
                             dataType: 'json',
                             cache: false,
