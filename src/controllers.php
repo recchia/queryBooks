@@ -1,7 +1,6 @@
 <?php
 
-use \PHPExcel;
-use \PHPExcel_IOFactory;
+
 use Adapter\GoogleBooksApiAdapter;
 use Form\Type\FindType;
 use Form\Type\UploadType;
@@ -14,9 +13,14 @@ use Exception\BookNotFoundException;
 use Doctrine\DBAL;
 use Model\DBConnection;
 use Model\Book;
+use Model\ExcelWorker;
+use Model\Constants;
 
 //Request::setTrustedProxies(array('127.0.0.1'));
 
+/**
+ * Find book function
+ */
 $app->get('/', function () use ($app) {
 
     $database = new DBConnection($app);
@@ -25,125 +29,47 @@ $app->get('/', function () use ($app) {
 
     $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm()->createView();
     $upload = $app['form.factory']->createBuilder(new UploadType())->getForm()->createView();
-    $download = $app['form.factory']->createBuilder(new DownloadType($docArray))->getForm()->createView();
+    $download = $app['form.factory']->createBuilder(new DownloadType($docArray, $app))->getForm()->createView();
 
     return $app['twig']->render('books/index.html.twig', ['form' => $form, 'upload' => $upload, 'download' => $download]);
 })
 ->bind('homepage')
 ;
 
-$app->post('/download', function (Request $request) use ($app) {
-
-    try
-    {
-        ini_set('max_execution_time', 100000);
-        $database = new DBConnection($app);
-        $documentsArray = $database->findAllDocuments();
-
-        $download = $app['form.factory']->createBuilder(new DownloadType($documentsArray))->getForm();
-        $download ->handleRequest($request);
-        if ($download->isValid()){
-            $data = $download->getData();
-
-            $filename = $documentsArray[$data['files']];
-
-            $books = $database->findBooksFromFilename($filename);
-
-            $phpExcel = new PHPExcel();
-            $phpExcel->getProperties()->setCreator('Linio Books')
-                ->setLastModifiedBy('Linio')
-                ->setTitle('Office 2007 XLSX Test Document')
-                ->setSubject('Office 2007 XLSX Test Document')
-                ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
-                ->setKeywords('office 2007 openxml php')
-                ->setCategory('Test result file');
-            $phpExcel->setActiveSheetIndex(0);
-            $phpExcel->getActiveSheet()->setCellValue('A1', 'ISBN_10');
-            $phpExcel->getActiveSheet()->setCellValue('B1', 'ISBN_13');
-            $phpExcel->getActiveSheet()->setCellValue('C1', 'Titulo');
-            $phpExcel->getActiveSheet()->setCellValue('D1', 'Autor');
-            $phpExcel->getActiveSheet()->setCellValue('E1', 'Editorial');
-            $phpExcel->getActiveSheet()->setCellValue('F1', 'Descripcion');
-            $phpExcel->getActiveSheet()->setCellValue('G1', 'Numero de Paginas');
-            $phpExcel->getActiveSheet()->setCellValue('H1', 'Imagen');
-
-            $i = 2;
-            foreach ($books as $book) {
-                $phpExcel->getActiveSheet()->setCellValue('A' . $i, $book->getIsbn10());
-                $phpExcel->getActiveSheet()->setCellValue('B' . $i, $book->getIsbn13());
-                $phpExcel->getActiveSheet()->setCellValue('C' . $i, $book->getTitle());
-                $phpExcel->getActiveSheet()->setCellValue('D' . $i, $book->getAuthors());
-                $phpExcel->getActiveSheet()->setCellValue('E' . $i, $book->getPublisher());
-                $phpExcel->getActiveSheet()->setCellValue('F' . $i, $book->getDescription());
-                $phpExcel->getActiveSheet()->setCellValue('G' . $i, $book->getPageCount());
-                $phpExcel->getActiveSheet()->setCellValue('H' . $i, $book->getImageLink());
-                $i++;
-            }
-            $phpExcel->setActiveSheetIndex(0);
-
-            $writer = PHPExcel_IOFactory::createWriter($phpExcel, 'Excel2007');
-            $file = ROOT . 'web/upload/' . $filename;
-            $writer->save($file);
-            return new JsonResponse('http://books.linio/upload/' . $filename);
-        } else {
-            return new JsonResponse(
-                json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($download)])
-            );
-        }
-    }
-    catch (Exception $e)
-    {
-        return new JsonResponse($e->getMessage());
-    }
-})->bind('download')
-;
-
+/**
+ * Find Book Function
+ */
 $app->post('/find', function (Request $request) use ($app) {
     try {
         $database = new DBConnection($app);
         $apiArray = $database->findAllApis();
-
         $form = $app['form.factory']->createBuilder(new FindType($apiArray))->getForm();
         $form->handleRequest($request);
         if ($form->isValid()) {
             $data = $form->getData();
 
-            if($data['api'] == 0) {
+            $apiInfo = $database->findApiInfoFromName($apiArray[$data['api']]);
+            $apiClass = new  $apiInfo[Constants::API_CLASSNAME](['api_key' => $apiInfo[Constants::API_KEY]]);
+            $book = $apiClass->findOne($data['isbn']);
+            if ($request->isXmlHttpRequest()) {
 
-                $key = $database->findApiKeyByName('Google Books Api');
+                return new JsonResponse( Util::getFindOneBookReturnMessage($book));
+            } else {
 
-                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
-                $book = $api->findOne($data['isbn']);
-                if ($request->isXmlHttpRequest()) {
-
-                    if (is_null($book->getPageCount())) {
-                        $book->setPageCount("N/A");
-                    }
-
-                    $formattedResponse = "<p>ISBN 10: " . $book->getIsbn10() . "<br />
-                ISBN 13: " . $book->getIsbn13() . "</p>
-                <p>T&iacute;tulo: <strong>" . $book->getTitle() . "</strong></p>
-                <p>Autor: " . $book->getAuthors() . "</p>
-                <p>Publicado por: " . $book->getPublisher() . "</p>
-                <p>Descripci&oacute;n: " . $book->getDescription() . "</p>
-                <p>N&uacute;mero de p&aacute;ginas: " . $book->getPageCount() . "</p>
-                <p><a href='" . $book->getImageLink() . "'>Ver Im&aacute;gen</a></p>";
-
-                    return new JsonResponse($formattedResponse);
-                } else {
-                    return $app['twig']->render('books/show.html.twig', ['books' => $book]);
-                }
+                return $app['twig']->render('books/show.html.twig', ['books' => $book]);
             }
         }
     }
     catch (BookNotFoundException $e)
     {
-       return new JsonResponse("<strong>No se consigui&oacute; el libro buscado</strong>");
+       return new JsonResponse(Constants::BOOKNOTFOUNDEXCEPTION_MSG);
     }
 })->bind('find')
 ;
 
-
+/**
+ * Upload Excel Function
+ */
 $app->post('/uploader', function (Request $request) use ($app) {
     try {
         ini_set('max_execution_time', 100000);
@@ -154,31 +80,27 @@ $app->post('/uploader', function (Request $request) use ($app) {
             $file = $request->files->get($upload->getName());
             $path = ROOT . 'web/upload/';
             $filename = $file['file']->getClientOriginalName();
-            $file['file']->move($path, $filename);
-            $excel = PHPExcel_IOFactory::load($path . $filename);
-            $sheet = $excel->getActiveSheet();
-            $highestRow = $sheet->getHighestRow();
-            $isbns = [];
-
-            for ($row = 1; $row <= $highestRow; ++$row) {
-                $isbns[] = $sheet->getCellByColumnAndRow(0, $row)->getValue();
-            }
+            $isbns = ExcelWorker::getISBNSFromExcelDocument($file, $path, $filename);
 
             $database = new DBConnection($app);
-            $isbnsNotFound = [];
-            $booksLinio = $database->findBookArrayByISBN13($isbns,$isbnsNotFound);
-
-            if(!is_null($isbnsNotFound)) {
-                $key = $database->findApiKeyByName('Google Books Api');
-                $api = new GoogleBooksApiAdapter(['api_key' => $key]);
-                $api->find($isbnsNotFound, $app);
+            $isbnsNotFound = $database->findISBN13NotInDatabase($isbns);
+            $apiArray = $database->findAllApis();
+            $count = 0;
+            foreach($apiArray as $api)
+            {
+                if (!is_null($isbnsNotFound))
+                {
+                    $apiInfo = $database->findApiInfoFromName($api);
+                    $apiClass= new $apiInfo[Constants::API_CLASSNAME](['api_key' => $apiInfo[Constants::API_KEY]]);
+                    $apiClass->find($isbnsNotFound, $app);
+                }
+                $count++;
             }
 
             $filename= trim($filename,".xlsx") . time() . ".xlsx";
             $database->saveFile($filename,$isbns);
 
-            return new JsonResponse('<strong>Documento guardado como: '. $filename .', lo puede conseguir
-            en la parte de Descarga de Archivos</strong>');
+            return new JsonResponse(Util::getUploaderReturnMessage($filename));
         } else {
             return new JsonResponse(
                 json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($upload)])
@@ -192,6 +114,61 @@ $app->post('/uploader', function (Request $request) use ($app) {
 })->bind('upload')
 ;
 
+/**
+ * Download Excel Function
+ */
+$app->post('/download', function (Request $request) use ($app) {
+
+    try
+    {
+        ini_set('max_execution_time', 100000);
+        $database = new DBConnection($app);
+        $documentsArray = $database->findAllDocuments();
+
+        $download = $app['form.factory']->createBuilder(new DownloadType($documentsArray, $app))->getForm();
+        $download ->handleRequest($request);
+        $download->bind($request);
+
+        if ($download->isValid()){
+            $data = $download->getData();
+
+            $filename = $documentsArray[$data['files']];
+
+            $books = $database->findBooksFromFilename($filename);
+            ExcelWorker::createExcelDocument($books, $filename);
+
+            return new JsonResponse(Constants::EXCEL_DOWNLOAD_LOCATION . $filename);
+        } else {
+            return new JsonResponse(
+                json_encode(['response' => 'File is invalid!', 'errors' => Util::getFormErrorMessages($download)])
+            );
+        }
+    }
+    catch (Exception $e)
+    {
+        return new JsonResponse($e->getMessage());
+    }
+})->bind('download')
+;
+
+$app->post('/refreshCombo', function(Request $request) use ($app) {
+
+    try
+    {
+        $database = new DBConnection($app);
+        $docArray = $database->findAllDocuments();
+        return new JsonResponse($docArray);
+    }
+    catch (Exception $e)
+    {
+        return new JsonResponse($e->getMessage());
+    }
+
+})->bind('refreshCombo');
+
+/**
+ * Get errors function
+ */
 $app->error(function (\Exception $e, Request $request, $code) use ($app) {
     if ($app['debug']) {
         return;

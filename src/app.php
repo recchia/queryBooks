@@ -8,6 +8,7 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\TranslationServiceProvider;
 use Silex\Provider\TwigServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
+use Model\Constants;
 
 $app = new Application();
 $app->register(new RoutingServiceProvider());
@@ -29,13 +30,13 @@ $app['twig'] = $app->extend('twig', function ($twig, $app) {
 
 $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
     'dbs.options'  => array(
-        'mysql' => array(
-            'driver'    =>  'pdo_mysql',
-            'host'      =>  'localhost',
-            'dbname'    =>  'querybooksdb',
-            'user'      =>  'website',
-            'password'  =>  'liniobooksapi',
-            'charset'   =>  'utf8mb4',
+        Constants::DATABASE_MYSQL => array(
+            'driver'    =>  Constants::DATABASE_DRIVER,
+            'host'      =>  Constants::DATABASE_HOST,
+            'dbname'    =>  Constants::DATABASE_NAME,
+            'user'      =>  Constants::DATABASE_USER,
+            'password'  =>  Constants::DATABASE_PASSWORD,
+            'charset'   =>  Constants::DATABASE_CHARSET,
         ),
     ),
 ));

@@ -69,78 +69,16 @@ class Book
      */
     public static function buildComplete($isbn10, $isbn13, $title, $authors, $publisher, $description, $pageCount, $imageLink)
     {
-        if (is_null($publisher))
-        {
-            $publisher = "N/A";
-        }
-        if (is_null($pageCount))
-        {
-            $pageCount = "N/A";
-        }
-        if (is_null($isbn10))
-        {
-            $isbn10 = "N/A";
-        }
-        if (is_null($isbn13))
-        {
-            $isbn13 = "N/A";
-        }
-        if (is_null($title))
-        {
-            $title = "N/A";
-        }
-        if (is_null($authors))
-        {
-            $authors = "N/A";
-        }
-        if (is_null($publisher))
-        {
-            $publisher = "N/A";
-        }
-        if (is_null($description))
-        {
-            $description = "N/A";
-        }
-        if (is_null($pageCount))
-        {
-            $pageCount = "N/A";
-        }
-        if (is_null($imageLink))
-        {
-            $imageLink = "N/A";
-        }
 
         $instance = new self();
-        $instance->isbn10 = $isbn10;
-        $instance->isbn13 = $isbn13;
-        $instance->title = $title;
-        $instance->authors = $authors;
-        $instance->publisher = $publisher;
-        $instance->description = $description;
-        $instance->pageCount = $pageCount;
-        $instance->imageLink = $imageLink;
-        return $instance;
-    }
-
-    /**
-     * @param $title
-     * @param $authors
-     * @param $publisher
-     * @param $description
-     * @param $pageCount
-     * @param $imageLink
-     *
-     * @return Book
-     */
-    public static function buildWithoutIsbn( $title, $authors, $publisher, $description, $pageCount, $imageLink)
-    {
-        $instance = new self();
-        $instance->title = $title;
-        $instance->authors = $authors;
-        $instance->publisher = $publisher;
-        $instance->description = $description;
-        $instance->pageCount = $pageCount;
-        $instance->imageLink = $imageLink;
+        $instance->setIsbn10($isbn10);
+        $instance->setIsbn13($isbn13);
+        $instance->setTitle($title);
+        $instance->setAuthors($authors);
+        $instance->setPublisher($publisher);
+        $instance->setDescription($description);
+        $instance->setPageCount($pageCount);
+        $instance->setImageLink($imageLink);
         return $instance;
     }
 
@@ -207,7 +145,7 @@ class Book
             $this->title = "N/A";
         }
         else {
-            $this->title = $title;
+            $this->title = trim($title,"'");
         }
     }
 
@@ -229,7 +167,7 @@ class Book
             $this->authors = "N/A";
         }
         else {
-            $this->authors = $authors;
+            $this->authors = trim($authors,"'");
         }
     }
 
@@ -329,14 +267,14 @@ class Book
     public function getInsertArray()
     {
         $insertData = [];
-        $insertData['LB_id'] = null;
-        $insertData['LB_isbnTen'] = $this->getIsbn10();
-        $insertData['LB_isbnThirteen'] = $this->getIsbn13();
-        $insertData['LB_title'] = $this->getTitle();
-        $insertData['LB_publisher'] = $this->getPublisher();
-        $insertData['LB_description'] = $this->getDescription();
-        $insertData['LB_pages'] = $this->getPageCount();
-        $insertData['LB_imageLink'] = $this->getImageLink();
+        $insertData[Constants::BOOK_ID] = null;
+        $insertData[Constants::BOOK_ISBN10] = $this->getIsbn10();
+        $insertData[Constants::BOOK_ISBN13] = $this->getIsbn13();
+        $insertData[Constants::BOOK_TITLE] = $this->getTitle();
+        $insertData[Constants::BOOK_PUBLISHER] = $this->getPublisher();
+        $insertData[Constants::BOOK_DESCRIPTION] = $this->getDescription();
+        $insertData[Constants::BOOK_NUMPAGES] = $this->getPageCount();
+        $insertData[Constants::BOOK_IMAGELINK] = $this->getImageLink();
         return $insertData;
     }
 }
